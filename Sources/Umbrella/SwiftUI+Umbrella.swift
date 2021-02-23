@@ -79,6 +79,7 @@ public enum Force {
         }
     }
     
+    @available(iOS 14.0, *)
     public struct SidebarStyle: ViewModifier {
         public init() {}
         #if os(macOS)

@@ -34,6 +34,7 @@ import CloudKit
 
 /// Shows continuous progress of CloudKit syncing via NSPersistentCloudKitContainer.
 /// Note, this class is not tested because it relies on NSNotificationCenter and other singletons.
+@available(iOS 14.0, OSX 11.0, *)
 public class CloudKitContainerContinuousProgress: ContinousProgress {
     
     public enum Error: UserFacingError {
