@@ -54,7 +54,7 @@ class UserFacingErrorTests: XCTestCase {
     }
     
     func test_domain() {
-        XCTAssertEqual(ImplicitError.errorDomain, "com.saturdayapps.UmbrellaTests.ImplicitError")
+        XCTAssertEqual(ImplicitError.errorDomain, "UmbrellaTests.ImplicitError")
         XCTAssertEqual(ExplicitError.errorDomain, "MyExplicitErrorDomain")
     }
     

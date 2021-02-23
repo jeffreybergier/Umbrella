@@ -60,12 +60,9 @@ class SwiftUmbrellaTests: XCTestCase {
     func test_bundle_init() {
         // Apple frameworks are expected to return nil
         XCTAssertNil(Bundle.for(type: String.self))
-        let bundle1 = Bundle.for(type: GenericWebKitNavigationDelegate.Error.self)
-        XCTAssertNotNil(bundle1)
-        XCTAssertEqual(bundle1?.bundleIdentifier, "com.saturdayapps.Umbrella")
         let bundle2 = Bundle.for(type: ImplicitError.self)
         XCTAssertNotNil(bundle2)
-        XCTAssertEqual(bundle2?.bundleIdentifier, "com.saturdayapps.UmbrellaTests")
+        XCTAssertEqual(bundle2?.bundleIdentifier, "UmbrellaTests")
     }
     
 }
