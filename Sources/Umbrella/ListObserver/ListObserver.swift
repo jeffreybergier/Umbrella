@@ -31,6 +31,10 @@ import Combine
 public protocol ListObserver: ObservableObject {
     associatedtype Collection: RandomAccessCollection
     var data: Collection { get }
+    #if DEBUG
+    // For testing only
+    var __objectDidChange: Self.ObjectWillChangePublisher { get }
+    #endif
 }
 
 /// Typeeraser for `ListObserver`
@@ -42,14 +46,17 @@ public class AnyListObserver<Collection: RandomAccessCollection>: ListObserver {
     public var data: Collection { _data() }
     private let _data: () -> Collection
     
-    internal let __testingValue: Any
-    
+    #if DEBUG
+    public var __objectDidChange: ObservableObjectPublisher { ___objectDidChange() }
+    private var ___objectDidChange: () -> ObservableObjectPublisher
+    #endif
+        
     public init<T: ListObserver>(_ observer: T)
           where T.Collection == Collection,
                 T.ObjectWillChangePublisher == ObjectWillChangePublisher
     {
         _data = { observer.data }
-        __testingValue = observer
+        ___objectDidChange = { observer.__objectDidChange }
         self.objectWillChange = observer.objectWillChange
     }
 }
