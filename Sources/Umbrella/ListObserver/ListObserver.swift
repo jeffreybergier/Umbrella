@@ -56,7 +56,9 @@ public class AnyListObserver<Collection: RandomAccessCollection>: ListObserver {
                 T.ObjectWillChangePublisher == ObjectWillChangePublisher
     {
         _data = { observer.data }
-        ___objectDidChange = { observer.__objectDidChange }
         self.objectWillChange = observer.objectWillChange
+        #if DEBUG
+        ___objectDidChange = { observer.__objectDidChange }
+        #endif
     }
 }
