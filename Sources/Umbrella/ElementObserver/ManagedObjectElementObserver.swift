@@ -32,16 +32,14 @@ import Combine
  can be used so that NSManagedObject does not leak into your UI layer. Basic usage looks like:
  Note: This class is not tested because it relies on NSManagedObject
  ```
-try controller.performFetch()
-return .success(
-    AnyListObserver(
-        FetchedResultsControllerListObserver(
-            FetchedResultsControllerList(controller) {
-                AnyElementObserver(ManagedObjectElementObserver($0, { AnyTag($0) }))
-            }
-        )
-    )
-)
+ try controller.performFetch()
+ return .success(
+     AnyListObserver(
+         FetchedResultsControllerListObserver(controller) {
+             AnyElementObserver(ManagedObjectElementObserver($0, { AnyTag($0) }))
+         }
+     )
+ )
  ```
  */
 public class ManagedObjectElementObserver<Output, Input: NSManagedObject>: ElementObserver {

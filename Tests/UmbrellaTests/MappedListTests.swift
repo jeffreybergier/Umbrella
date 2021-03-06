@@ -33,22 +33,22 @@ class MappedListTests: AsyncTestCase {
     func test_lazy_mapping() {
         let data = [1,3,5,9,20]
         let wait = self.newWait(count: 3)
-        let lazyMap: MappedList<Int, String> = MappedList(data) { input in
+        let lazyMap: AnyRandomAccessCollection<String> = data.lazy.map { input in
             wait() {
                 // Make sure items 2 and 3 are never accesed so we know its lazy
                 XCTAssertNotEqual(input, 3)
                 XCTAssertNotEqual(input, 5)
             }
             return String(input * 2)
-        }
+        }.eraseToAnyRandomAccessCollection()
         self.do(after: .instant) {
-            XCTAssertEqual(lazyMap[0], "2")
+            XCTAssertEqual(lazyMap[AnyIndex(0)], "2")
         }
         self.do(after: .short) {
-            XCTAssertEqual(lazyMap[3], "18")
+            XCTAssertEqual(lazyMap[AnyIndex(3)], "18")
         }
         self.do(after: .short) {
-            XCTAssertEqual(lazyMap[4], "40")
+            XCTAssertEqual(lazyMap[AnyIndex(4)], "40")
         }
         self.wait(for: .medium)
     }

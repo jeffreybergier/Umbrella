@@ -33,54 +33,61 @@ import Combine
  The class is used.
  To prevent your data model (Core Data) from leaking into your UI layer use `AnyListObserver`:
  ```
-try controller.performFetch()
-return .success(
-    AnyListObserver(
-        FetchedResultsControllerListObserver(
-            FetchedResultsControllerList(controller) {
-                AnyElementObserver(ManagedObjectElementObserver($0, { AnyTag($0) }))
-            }
-        )
-    )
-)
+ try controller.performFetch()
+ return .success(
+     AnyListObserver(
+         FetchedResultsControllerListObserver(controller) {
+             AnyElementObserver(ManagedObjectElementObserver($0, { AnyTag($0) }))
+         }
+     )
+ )
  ```
  */
 public class FetchedResultsControllerListObserver<Output, Input: NSManagedObject>:
     NSObject, ListObserver, NSFetchedResultsControllerDelegate
 {
+    public typealias Transform = (Input) -> Output
 
-    public var data: AnyList<Output>
+    @Published public var data: AnyRandomAccessCollection<Output>
+    private let controller: NSFetchedResultsController<Input>
+    private let transform: Transform
 
-    public init(_ list: FetchedResultsControllerList<Output, Input>) {
-        self.data = AnyList(list)
+    public init(_ controller: NSFetchedResultsController<Input>, transform: @escaping Transform) {
+        self.controller = controller
+        self.transform = transform
+        self.data = controller.fetchedObjects?.lazy.map(transform).eraseToAnyRandomAccessCollection() ?? .empty
         super.init()
-        list.frc.delegate = self
+        controller.delegate = self
     }
 
     // MARK: NSFetchedResultsControllerDelegate
     
-    public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        self.objectWillChange.send()
+    public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        self.data = self.controller.fetchedObjects?.lazy.map(self.transform).eraseToAnyRandomAccessCollection() ?? .empty
+        #if DEBUG
+        __objectDidChange.send()
+        #endif
+    }
+    
+    deinit {
+        self.controller.delegate = nil
+        #if DEBUG
+        log.verbose()
+        #endif
     }
     
     #if DEBUG
     // MARK: Testing Only
     
     /// for testing only
-    internal init(__TESTING: Bool) where Input == NSManagedObject, Output == Never {
-        self.data = AnyList([])
-    }
-    
-    /// for testing only
     public var __objectDidChange = ObservableObjectPublisher()
     
     /// for testing only
-    public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        __objectDidChange.send()
-    }
-    
-    deinit {
-        log.verbose()
+    internal init(__TESTING: Bool) where Input == NSManagedObject, Output == Never {
+        self.controller = NSFetchedResultsController()
+        self.transform = { _ in fatalError() }
+        self.data = .init([])
+        super.init()
     }
     #endif
 }

@@ -36,7 +36,7 @@ class FetchedResultsControllerListObserverTests: AsyncTestCase {
         controller.objectWillChange.sink { _ in
             wait(nil)
         }.store(in: &self.tokens)
-        controller.perform(#selector(NSFetchedResultsControllerDelegate.controllerWillChangeContent(_:)), with: nil)
+        controller.perform(#selector(NSFetchedResultsControllerDelegate.controllerDidChangeContent(_:)), with: nil)
         self.wait(for: .short)
      }
     
