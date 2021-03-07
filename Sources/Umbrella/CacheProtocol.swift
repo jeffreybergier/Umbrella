@@ -25,6 +25,12 @@
 //
 
 import Combine
+import Foundation
+#if canImport(AppKit)
+import AppKit
+#else
+import UIKit
+#endif
 
 public protocol CacheProtocol: class {
     associatedtype Key: Hashable
@@ -45,20 +51,79 @@ extension CacheProtocol {
         get { return self.cache[key] }
         set { self.cache[key] = newValue }
     }
+    public func clear() {
+        self.cache = [:]
+    }
 }
 
 /// Publishes changes to T through ObjectWillChangePublisher
-public class Cache<K: Hashable, V>: ObservableObject, CacheProtocol {
+public class PublishedCache<K: Hashable, V>: ObservableObject, CacheProtocol {
     @Published public var cache: [K: V] = [:]
-    public init(initialCache: [K: V] = [:]) {
+    private var tokens: Set<AnyCancellable> = []
+    public init(initialCache: [K: V] = [:], clearAutomatically: Bool = false) {
         self.cache = initialCache
+        guard clearAutomatically else { return }
+        CacheProtocolNotification.activateShouldClear()
+        NotificationCenter
+            .default
+            .publisher(for: CacheProtocolNotification.shouldClear)
+            .sink { [weak self] _ in
+                self?.clear()
+            }
+            .store(in: &self.tokens)
     }
 }
 
 /// Never publishes changes through ObjectWillChangePublisher
-public class BlackBoxCache<K: Hashable, V>: ObservableObject, CacheProtocol {
+public class Cache<K: Hashable, V>: ObservableObject, CacheProtocol {
     public var cache: [K: V] = [:]
-    public init(initialCache: [K: V] = [:]) {
+    private var tokens: Set<AnyCancellable> = []
+    public init(initialCache: [K: V] = [:], clearAutomatically: Bool = false) {
         self.cache = initialCache
+        guard clearAutomatically else { return }
+        CacheProtocolNotification.activateShouldClear()
+        NotificationCenter
+            .default
+            .publisher(for: CacheProtocolNotification.shouldClear)
+            .sink { [weak self] _ in
+                self?.clear()
+            }
+            .store(in: &self.tokens)
     }
+}
+
+public enum CacheProtocolNotification {
+    
+    public static let shouldClear = Notification.Name(rawValue: "JSBUmbrellaCacheProtocolShouldClearNotification")
+    
+    /// Notification fired on:
+    /// `NSApplication.didResignActiveNotification`,
+    /// `UIApplication.didEnterBackgroundNotification`,
+    /// `UIApplication.didReceiveMemoryWarningNotification`
+    public static func activateShouldClear() {
+        guard self.notificationTokens.isEmpty else { return }
+        let nc = NotificationCenter.default
+        let clearCache: (NotificationCenter.Publisher.Output) -> Void = { _ in
+            nc.post(name: self.shouldClear, object: nil)
+        }
+        #if canImport(AppKit)
+        nc.publisher(for: NSApplication.didResignActiveNotification)
+            .sink(receiveValue: clearCache)
+            .store(in: &self.notificationTokens)
+        #else
+        nc.publisher(for: UIApplication.didEnterBackgroundNotification)
+            .sink(receiveValue: clearCache)
+            .store(in: &self.notificationTokens)
+        nc.publisher(for: UIApplication.didReceiveMemoryWarningNotification)
+            .sink(receiveValue: clearCache)
+            .store(in: &self.notificationTokens)
+        #endif
+    }
+    
+    public static func deactivateShouldClear() {
+        self.notificationTokens.forEach { $0.cancel() }
+        self.notificationTokens = []
+    }
+    
+    private static var notificationTokens: Set<AnyCancellable> = []
 }
