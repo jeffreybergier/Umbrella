@@ -48,7 +48,7 @@ public class FetchedResultsControllerListObserver<Output, Input: NSManagedObject
 {
     public typealias Transform = (Input) -> Output
 
-    @Published public var data: AnyRandomAccessCollection<Output>
+    public var data: AnyRandomAccessCollection<Output>
     private let controller: NSFetchedResultsController<Input>
     private let transform: Transform
 
@@ -61,6 +61,10 @@ public class FetchedResultsControllerListObserver<Output, Input: NSManagedObject
     }
 
     // MARK: NSFetchedResultsControllerDelegate
+    
+    public func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        self.objectWillChange.send()
+    }
     
     public func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         self.data = self.controller.fetchedObjects?.lazy.map(self.transform).eraseToAnyRandomAccessCollection() ?? .empty
