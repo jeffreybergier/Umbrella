@@ -32,7 +32,7 @@ import AppKit
 import UIKit
 #endif
 
-public protocol CacheProtocol: class {
+public protocol CacheProtocol: AnyObject {
     associatedtype Key: Hashable
     associatedtype Value
     var cache: [Key: Value] { get set }

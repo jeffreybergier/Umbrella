@@ -105,7 +105,7 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
                 switch account {
                 case .available:
                     self.initializeError = nil
-                case .couldNotDetermine, .restricted, .noAccount:
+                case .couldNotDetermine, .restricted, .noAccount, .temporarilyUnavailable:
                     fallthrough
                 @unknown default:
                     self.initializeError = Error.accountStatus(account)

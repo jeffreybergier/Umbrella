@@ -24,7 +24,9 @@
 //  SOFTWARE.
 //
 
-extension Queue {
+import Collections
+
+extension Deque {
     @discardableResult
     public mutating func append<Ignored>(_ result: Result<Ignored, Element>) -> Result<Ignored, Element>
     {

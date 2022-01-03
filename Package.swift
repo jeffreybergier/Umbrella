@@ -30,7 +30,7 @@ import PackageDescription
 let package = Package(
     name: "Umbrella",
     platforms: [
-        .macOS(.v10_15), .iOS(.v13)
+        .macOS(.v10_15), .iOS(.v13), // .watchOS(.v4) // WKInterfaceDevice
     ],
     products: [
         .library(
@@ -47,12 +47,19 @@ let package = Package(
             name: "ServerlessLogger",
             url: "https://github.com/jeffreybergier/JSBServerlessLogger.git",
             .branch("master")
+        ),
+        .package(
+            url: "https://github.com/apple/swift-collections.git",
+            .upToNextMajor(from: "1.0.0")
         )
     ],
     targets: [
         .target(
             name: "Umbrella",
-            dependencies: ["ServerlessLogger"],
+            dependencies: [
+                .product(name: "ServerlessLogger", package: "ServerlessLogger"),
+                .product(name: "Collections", package: "swift-collections")
+            ],
             path: "Sources/Umbrella"
         ),
         .target(

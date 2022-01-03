@@ -26,8 +26,10 @@
 
 import XCGLogger
 
+public var kLoggerIdentifier: String!
+/// Configure `kLoggerIdentifier` before first use or else will crash
 public let log: XCGLogger = {
-    let l = XCGLogger(identifier: "Hipstapaper.App.Logger", includeDefaultDestinations: true)
+    let l = XCGLogger(identifier: kLoggerIdentifier, includeDefaultDestinations: true)
     #if DEBUG
     l.outputLevel = .verbose
     #else

@@ -25,6 +25,7 @@
 //
 
 import SwiftUI
+import Collections
 
 public typealias ErrorQueue = PublishQueue<UserFacingError>
 /// Add ErrorQueue to environment so any view can append errors.
@@ -33,7 +34,7 @@ public typealias ErrorQueue = PublishQueue<UserFacingError>
 public class PublishQueue<T>: ObservableObject {
     
     @Published public var current: IdentBox<T>? { didSet { self.update() } }
-    public var queue: Queue<T> = [] { didSet { self.update() } }
+    public var queue: Deque<T> = [] { didSet { self.update() } }
     
     public init() { }
     
@@ -42,7 +43,7 @@ public class PublishQueue<T>: ObservableObject {
         guard self.current == nil, self.timer == nil else { return }
         self.timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: false)
         { [weak self] timer in
-            self?.current = self?.queue.pop().map { IdentBox($0) }
+            self?.current = self?.queue.popLast().map { IdentBox($0) }
             timer.invalidate()
             self?.timer = nil
         }
