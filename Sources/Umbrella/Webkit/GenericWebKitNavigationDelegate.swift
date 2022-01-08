@@ -26,6 +26,7 @@
 
 import WebKit
 import SwiftUI
+import Collections
 
 /// Provides a basic WKNavigationDelegate with expected behavior for showing simple web views.
 /// Note, this class is not tested because there are too many custom types from WebKit.
@@ -50,11 +51,11 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     
     public typealias OnError = (UserFacingError) -> Void
     
-    public let errorQ: ErrorQueue
+    public var errors: Deque<UFError>
     public var onError: OnError?
     
-    public init(_ errorQ: ErrorQueue, onError: OnError? = nil) {
-        self.errorQ = errorQ
+    public init(_ errors: Deque<UFError>, onError: OnError? = nil) {
+        self.errors = errors
         self.onError = onError
     }
     
@@ -70,7 +71,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         else {
             decisionHandler(.cancel, preferences)
             let localizedError = Error.invalidURL(url)
-            self.errorQ.queue.append(localizedError)
+            self.errors.append(localizedError)
             self.onError?(localizedError)
             return
         }
@@ -82,7 +83,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         withError error: Swift.Error)
     {
         let localizedError = GenericError(error as NSError)
-        self.errorQ.queue.append(localizedError)
+        self.errors.append(localizedError)
         self.onError?(localizedError)
     }
     
@@ -91,7 +92,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         withError error: Swift.Error)
     {
         let localizedError = GenericError(error as NSError)
-        self.errorQ.queue.append(localizedError)
+        self.errors.append(localizedError)
         self.onError?(localizedError)
     }
 }

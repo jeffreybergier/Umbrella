@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/02/16.
+//  Created by Jeffrey Bergier on 2021/03/08.
 //
 //  MIT License
 //
@@ -24,16 +24,30 @@
 //  SOFTWARE.
 //
 
-import XCGLogger
+import Combine
+import Foundation
 
-public var kLoggerIdentifier: String!
-/// Configure `kLoggerIdentifier` before first use or else will crash
-public let log: XCGLogger = {
-    let l = XCGLogger(identifier: kLoggerIdentifier, includeDefaultDestinations: true)
-    #if DEBUG
-    l.outputLevel = .verbose
-    #else
-    l.outputLevel = .warning
-    #endif
-    return l
-}()
+/// Takes an `ObservableObject` and puts it into an `ObservableObject` box.
+/// This is useful in the case where your SwiftUI.View needs to change the object its observing
+public class NilBox<Value: ObservableObject>: ObservableObject {
+    
+    public var value: Value? {
+        willSet { self.objectWillChange.send() }
+        didSet { self.subscribe() }
+    }
+    
+    private var token: AnyCancellable?
+    
+    public init() { }
+    
+    public init(_ value: Value) {
+        self.value = value
+        self.subscribe()
+    }
+    
+    private func subscribe() {
+        self.token = self.value?.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
+    }
+}

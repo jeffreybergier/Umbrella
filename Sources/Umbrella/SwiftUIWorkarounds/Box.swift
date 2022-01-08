@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/02/22.
+//  Created by Jeffrey Bergier on 2021/03/08.
 //
 //  MIT License
 //
@@ -24,30 +24,28 @@
 //  SOFTWARE.
 //
 
-import TestUmbrella
-@testable import Umbrella
-import CoreData
+import Combine
+import Foundation
 
-class FetchedResultsControllerListObserverTests: AsyncTestCase {
+/// Takes an `ObservableObject` and puts it into an `ObservableObject` box.
+/// This is useful in the case where your SwiftUI.View needs to change the object its observing
+public class Box<Value: ObservableObject>: ObservableObject {
     
-    func test_controllerWillChangePublisher() {
-        let controller = FetchedResultsControllerListObserver(__TESTING: true)
-        let wait = self.newWait()
-        controller.objectWillChange.sink { _ in
-            wait(nil)
-        }.store(in: &self.tokens)
-        controller.perform(#selector(NSFetchedResultsControllerDelegate.controllerWillChangeContent(_:)), with: nil)
-        self.wait(for: .short)
-     }
+    public var value: Value {
+        willSet { self.objectWillChange.send() }
+        didSet { self.subscribe() }
+    }
     
-    func test_controllerDidChangePublisher() {
-        let controller = FetchedResultsControllerListObserver(__TESTING: true)
-        let wait = self.newWait()
-        controller.__objectDidChange.sink { _ in
-            wait(nil)
-        }.store(in: &self.tokens)
-        controller.perform(#selector(NSFetchedResultsControllerDelegate.controllerDidChangeContent(_:)), with: nil)
-        self.wait(for: .short)
-     }
+    private var token: AnyCancellable?
     
+    public init(_ value: Value) {
+        self.value = value
+        self.subscribe()
+    }
+    
+    private func subscribe() {
+        self.token = self.value.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
+    }
 }

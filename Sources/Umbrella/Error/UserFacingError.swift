@@ -34,6 +34,7 @@ public protocol UserFacingError: CustomNSError {
     var message: LocalizedStringKey { get }
     /// Default implementation is "Verb.Dismiss"
     var dismissTitle: LocalizedStringKey { get }
+    var isCritical: Bool { get }
     /// Default implementation is empty.
     /// If options are present the Alert/UI for the error should show the options
     var options: [RecoveryOption] { get }
@@ -66,6 +67,7 @@ extension UserFacingError {
     public var options: [RecoveryOption] {
         return []
     }
+    public var isCritical: Bool { false }
 }
 
 extension UserFacingError {

@@ -25,26 +25,27 @@
 //
 
 import XCTest
-@testable import Umbrella
+import Collections
+import Umbrella
 
 class QueueResultTests: XCTestCase {
     
     func test_append_failure() {
-        var q = Queue<Int>()
+        var q = Deque<Int>()
         let rO: Result<String, Int> = .failure(3)
         let rT = q.append(rO)
         XCTAssertEqual(rO, rT)
-        XCTAssertEqual(q.pop()!, 3)
-        XCTAssertNil(q.pop())
+        XCTAssertEqual(q.popLast()!, 3)
+        XCTAssertNil(q.popLast())
     }
     
     func test_append_success() {
-        var q = Queue<Int>()
+        var q = Deque<Int>()
         let rO: Result<Int, String> = .success(4)
         let rT = q.append(rO)
         XCTAssertEqual(rO, rT)
-        XCTAssertEqual(q.pop()!, 4)
-        XCTAssertNil(q.pop())
+        XCTAssertEqual(q.popLast()!, 4)
+        XCTAssertNil(q.popLast())
     }
 }
 

@@ -28,6 +28,7 @@ import SwiftUI
 import CoreData
 import Combine
 import CloudKit
+import Collections
 
 // Highly inspired by
 // https://github.com/ggruen/CloudKitSyncMonitor/blob/main/Sources/CloudKitSyncMonitor/SyncMonitor.swift
@@ -65,7 +66,7 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
     
     public var initializeError: UserFacingError?
     public let progress: Progress
-    public var errorQ = ErrorQueue()
+    public var errors: Deque<UFError> = .init()
     
     private let syncName = NSPersistentCloudKitContainer.eventChangedNotification
     private let accountName = Notification.Name.CKAccountChanged
@@ -123,7 +124,7 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
             if let error = event.error {
                 log.error(error)
                 let error = error as NSError
-                self.errorQ.queue.append(Error.sync(error))
+                self.errors.append(Error.sync(error))
             }
             if self.io.contains(event.identifier) {
                 log.debug("- \(event.identifier)")
