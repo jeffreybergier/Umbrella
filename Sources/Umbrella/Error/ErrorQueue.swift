@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/03/08.
+//  Created by Jeffrey Bergier on 2022/01/08.
 //
 //  MIT License
 //
@@ -11,6 +11,8 @@
 //  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
+
+import DequeModule
 
 //  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
@@ -24,20 +26,5 @@
 //  SOFTWARE.
 //
 
-import Combine
-import Foundation
-
-/// Takes any value and puts it into a box that is `ObservableObject`.
-/// Also makes it `Identifiable` if the value is `Identifiable`
-public class BlackBox<Value>: ObservableObject {
-    @Published public var value: Value
-    public init(_ value: Value) {
-        self.value = value
-    }
-}
-
-extension BlackBox: Identifiable where Value: Identifiable {
-    public var id: Value.ID {
-        return self.value.id
-    }
-}
+public typealias ErrorQueue = BlackBox<Deque<Error>>
+public typealias UserFacingErrorQueue = BlackBox<Deque<UserFacingError>>
