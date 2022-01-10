@@ -26,19 +26,28 @@
 
 import SwiftUI
 
-public struct JSBTextField: View {
+public struct JSBToggle: View {
     
     private let titleKey: LocalizedStringKey
-    @Binding private var text: String?
+    private let isFlipped: Bool
+    @Binding private var isOn: Bool
     
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String?>) {
+    public init(_ titleKey: LocalizedStringKey,
+                isOn: Binding<Bool>,
+                isFlipped: Bool = false)
+    {
         self.titleKey = titleKey
-        _text = text
+        self.isFlipped = isFlipped
+        _isOn = isOn
     }
     
     public var body: some View {
-        TextField(self.titleKey,
-                  text: Binding(get: { self.text ?? "" },
-                                set: { self.text = $0.trimmed }))
+        if self.isFlipped {
+            Toggle(self.titleKey,
+                   isOn: Binding(get: { !self.isOn },
+                                 set: { self.isOn = !$0 }))
+        } else {
+            Toggle(self.titleKey, isOn: self.$isOn)
+        }
     }
 }
