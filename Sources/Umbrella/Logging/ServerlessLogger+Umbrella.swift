@@ -30,7 +30,7 @@ import Foundation
 /// Use this file to make any Type in the system loggable
 
 /// Must call Loggable.configure before first use
-public var log: XCGLogger = XCGLogger.default
+public var log: XCGLogger = Loggable.default ?? XCGLogger.default
 
 extension String: LoggableProtocol {}
 
