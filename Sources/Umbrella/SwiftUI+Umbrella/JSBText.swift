@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/02/17.
+//  Created by Jeffrey Bergier on 2022/01/10.
 //
 //  MIT License
 //
@@ -24,12 +24,31 @@
 //  SOFTWARE.
 //
 
-import Foundation
+import SwiftUI
 
-extension StringProtocol {
-    /// Trims string with `.whitespacesAndNewlines` and returns NIL if string is empty after trimming
-    public var trimmed: String? {
-        let trimmed = self.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
+public struct isFallbackKey: PreferenceKey {
+    public static var defaultValue: Bool = false
+    public static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = nextValue()
+    }
+}
+
+public struct JSBText<S: StringProtocol>: View {
+    
+    private let titleKey: LocalizedStringKey
+    private let text: S?
+    
+    public init(_ titleKey: LocalizedStringKey, text: S?) {
+        self.titleKey = titleKey
+        self.text = text
+    }
+    
+    public var body: some View {
+        if let trimmed = self.text?.trimmed {
+            SwiftUI.Text(trimmed)
+        } else {
+            SwiftUI.Text(self.titleKey)
+                .preference(key: isFallbackKey.self, value: true)
+        }
     }
 }
