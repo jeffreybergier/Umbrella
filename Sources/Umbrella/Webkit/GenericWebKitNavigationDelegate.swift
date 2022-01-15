@@ -24,6 +24,7 @@
 //  SOFTWARE.
 //
 
+#if canImport(WebKit)
 import WebKit
 import SwiftUI
 import Collections
@@ -96,3 +97,4 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         self.onError?(localizedError)
     }
 }
+#endif

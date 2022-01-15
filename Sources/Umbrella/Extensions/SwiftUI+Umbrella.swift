@@ -26,7 +26,7 @@
 
 import SwiftUI
 
-#if canImport(UIKit)
+#if os(iOS)
 extension Binding where Value == EditMode {
     public var isEditing: Bool {
         switch self.wrappedValue {
@@ -56,12 +56,12 @@ extension UserInterfaceSizeClass {
 
 public enum Force {
     public struct EditMode: ViewModifier {
-        #if canImport(UIKit)
+        #if os(iOS)
         @State var editMode: SwiftUI.EditMode = .active
         #endif
         public init() {}
         public func body(content: Content) -> some View {
-            #if canImport(UIKit)
+            #if os(iOS)
             return content.environment((\.editMode), self.$editMode)
             #else
             return content
@@ -86,13 +86,17 @@ public enum Force {
         public func body(content: Content) -> some View {
             content.listStyle(SidebarListStyle())
         }
-        #else
+        #elseif os(iOS)
         @ViewBuilder public func body(content: Content) -> some View {
             if UIDevice.current.userInterfaceIdiom == .pad {
                 content.listStyle(SidebarListStyle())
             } else {
                 content.listStyle(InsetGroupedListStyle())
             }
+        }
+        #else
+        public func body(content: Content) -> some View {
+            content
         }
         #endif
     }

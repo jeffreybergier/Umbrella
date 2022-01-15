@@ -27,6 +27,7 @@
 import XCTest
 @testable import Umbrella
 
+#if canImport(WebKit)
 class SwiftUmbrellaTests: XCTestCase {
 
     func test_result() {
@@ -64,5 +65,5 @@ class SwiftUmbrellaTests: XCTestCase {
         XCTAssertNotNil(bundle2)
         XCTAssertEqual(bundle2?.bundleIdentifier, "UmbrellaTests")
     }
-    
 }
+#endif

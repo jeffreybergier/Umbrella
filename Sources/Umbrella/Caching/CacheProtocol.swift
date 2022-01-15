@@ -26,10 +26,12 @@
 
 import Combine
 import Foundation
-#if canImport(AppKit)
+#if os(macOS)
 import AppKit
-#else
+#elseif os(iOS)
 import UIKit
+#else
+import WatchKit
 #endif
 
 public protocol CacheProtocol: AnyObject {
@@ -106,15 +108,19 @@ public enum CacheProtocolNotification {
         let clearCache: (NotificationCenter.Publisher.Output) -> Void = { _ in
             nc.post(name: self.shouldClear, object: nil)
         }
-        #if canImport(AppKit)
+        #if os(macOS)
         nc.publisher(for: NSApplication.didResignActiveNotification)
             .sink(receiveValue: clearCache)
             .store(in: &self.notificationTokens)
-        #else
+        #elseif os(iOS)
         nc.publisher(for: UIApplication.didEnterBackgroundNotification)
             .sink(receiveValue: clearCache)
             .store(in: &self.notificationTokens)
         nc.publisher(for: UIApplication.didReceiveMemoryWarningNotification)
+            .sink(receiveValue: clearCache)
+            .store(in: &self.notificationTokens)
+        #else
+        nc.publisher(for: WKExtension.applicationDidEnterBackgroundNotification)
             .sink(receiveValue: clearCache)
             .store(in: &self.notificationTokens)
         #endif
