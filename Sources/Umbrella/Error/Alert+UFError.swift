@@ -26,38 +26,42 @@
 
 import SwiftUI
 
-extension Alert {
-    public init(_ error: UFError, dismissAction: @escaping () -> Void = {}) {
-        if !error.options.isEmpty {
-            self.init(RUFError: error, dismissAction: dismissAction)
-        } else {
-            self.init(UFError: error, dismissAction: dismissAction)
-        }
-    }
-    
-    private init(UFError error: UFError, dismissAction: @escaping () -> Void) {
-        self.init(title: Text(error.title),
-                  message: Text(error.message),
-                  dismissButton: .cancel(Text(error.dismissTitle),
-                                         action: dismissAction))
-    }
-    
-    private init(RUFError error: UFError, dismissAction: @escaping () -> Void) {
-        precondition(error.options.count == 1, "Currently only 1 recovery option is supported")
-        self.init(title: Text(error.title),
-                  message: Text(error.message),
-                  primaryButton: .init(error.options[0]),
-                  secondaryButton: .cancel(Text(error.dismissTitle),
-                                           action: dismissAction))
-    }
-}
+public typealias UFEAlert = UserFacingErrorAlert
 
-extension Alert.Button {
-    public init(_ option: RecoveryOption) {
-        if option.isDestructive {
-            self = .destructive(Text(option.title), action: option.perform)
-        } else {
-            self = .default(Text(option.title), action: option.perform)
+public struct UserFacingErrorAlert: ViewModifier {
+    
+    @Binding private var error: UserFacingError?
+    private let dismissAction: ((UserFacingError) -> Void)?
+    
+    public init(_ error: Binding<UserFacingError?>,
+                dismissAction: ((UserFacingError) -> Void)? = nil)
+    {
+        _error = error
+        self.dismissAction = dismissAction
+    }
+    
+    public func body(content: Content) -> some View {
+        content.modifier(self.render())
+    }
+    
+    private func render() -> some ViewModifier {
+        JSBAlert(item: self.$error,
+                 titleKey: self.error?.title ?? "Noun.Error",
+                 message: { Text($0.message) })
+        { error in
+            ForEach(error.options) { option in
+                if option.isDestructive {
+                    Button(option.title,
+                           role: .destructive,
+                           action: option.perform)
+                } else {
+                    Button(option.title,
+                           action: option.perform)
+                }
+            }
+            Button(error.dismissTitle, role: .cancel) {
+                self.dismissAction?(error)
+            }
         }
     }
 }

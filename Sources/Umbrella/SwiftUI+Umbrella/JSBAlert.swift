@@ -34,8 +34,8 @@ public struct JSBAlert<P, A: View, M: View>: ViewModifier {
     private var message: (P) -> M
     public init(item: Binding<P?>,
                 titleKey: LocalizedStringKey,
-                @ViewBuilder actions: @escaping (P) -> A,
-                @ViewBuilder message: @escaping (P) -> M)
+                @ViewBuilder message: @escaping (P) -> M,
+                @ViewBuilder actions: @escaping (P) -> A)
     {
         self.titleKey = titleKey
         self.actions = actions

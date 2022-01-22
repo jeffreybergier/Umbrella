@@ -40,7 +40,8 @@ public protocol UserFacingError: CustomNSError {
     var options: [RecoveryOption] { get }
 }
 
-public struct RecoveryOption {
+public struct RecoveryOption: Identifiable {
+    public var id = Int.random(in: 0..<Int.max)
     public var title: LocalizedStringKey
     public var isDestructive: Bool
     public var perform: () -> Void

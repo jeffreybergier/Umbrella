@@ -30,7 +30,11 @@ import Foundation
 /// Takes any value and puts it into a box that is `ObservableObject`.
 /// Also makes it `Identifiable` if the value is `Identifiable`
 public class BlackBox<Value>: ObservableObject {
-    @Published public var value: Value
+    public let objectDidChange = ObservableObjectPublisher()
+    public var value: Value {
+        willSet { self.objectWillChange.send() }
+        didSet { self.objectDidChange.send() }
+    }
     public init(_ value: Value) {
         self.value = value
     }
