@@ -51,12 +51,15 @@ public struct UserFacingErrorAlert: ViewModifier {
         { error in
             ForEach(error.options) { option in
                 if option.isDestructive {
-                    Button(option.title,
-                           role: .destructive,
-                           action: option.perform)
+                    Button(option.title, role: .destructive) {
+                        option.perform()
+                        self.dismissAction?(error)
+                    }
                 } else {
-                    Button(option.title,
-                           action: option.perform)
+                    Button(option.title) {
+                        option.perform()
+                        self.dismissAction?(error)
+                    }
                 }
             }
             Button(error.dismissTitle, role: .cancel) {
