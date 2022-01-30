@@ -87,6 +87,7 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
     }
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         guard let item = results.first?.itemProvider else {
+            // User cancelled
             self.selectionClosure(nil)
             return
         }

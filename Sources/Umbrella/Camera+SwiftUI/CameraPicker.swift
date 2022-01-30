@@ -94,16 +94,18 @@ internal class CameraPickerNativeDelegate: NSObject, UIImagePickerControllerDele
         self.selectionClosure = selection
     }
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        guard let itemURL = info[.imageURL] as? URL else {
+        let _image = (info[.editedImage] as? UIImage) ?? (info[.originalImage] as? UIImage)
+        guard let image = _image else {
+            // TODO: Create error here
             self.selectionClosure(nil)
             return
         }
-        do {
-            let data = try Data(contentsOf: itemURL)
-            self.selectionClosure(.success(data))
-        } catch {
-            self.selectionClosure(.failure(error))
+        guard let data = image.jpegData(compressionQuality: 0.8) else {
+            // TODO: Create error here
+            self.selectionClosure(nil)
+            return
         }
+        self.selectionClosure(.success(data))
     }
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         self.selectionClosure(nil)
