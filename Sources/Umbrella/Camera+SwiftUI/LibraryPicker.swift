@@ -117,14 +117,13 @@ public struct LibraryPicker: View {
     public typealias JPEGResult = Result<Data,Error>
     public typealias JPEGSelection = (JPEGResult?) -> Void
     
-    @State private var result: JPEGResult?    
     private let selectionClosure: JPEGSelection
     
     public init(selection: @escaping JPEGSelection) {
         self.selectionClosure = selection
     }
     public var body: some View {
-        LibraryPickerUnavailable()
+        LibraryPickerUnavailable(self.selectionClosure)
     }
 }
 #endif

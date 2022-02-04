@@ -105,7 +105,6 @@ public struct CameraPicker: View {
     public typealias JPEGResult = Result<Data,Error>
     public typealias JPEGSelection = (JPEGResult?) -> Void
     
-    @State private var result: JPEGResult?
     private let selectionClosure: JPEGSelection
     
     public init(selection: @escaping JPEGSelection) {
@@ -113,7 +112,7 @@ public struct CameraPicker: View {
     }
     
     public var body: some View {
-        CameraPickerUnavailable()
+        CameraPickerUnavailable(self.selectionClosure)
     }
 }
 #endif
