@@ -30,9 +30,6 @@ public struct CameraPicker: View {
     public typealias JPEGResult = Result<Data,Error>
     public typealias JPEGSelection = (JPEGResult?) -> Void
     
-    @State private var result: JPEGResult?
-    @Environment(\.dismiss) private var dismiss
-    
     private let selectionClosure: JPEGSelection
     
     public init(selection: @escaping JPEGSelection) {
@@ -40,29 +37,20 @@ public struct CameraPicker: View {
     }
     
     public var body: some View {
-        let _picker = CameraPickerNative() { result in
-            self.result = result
-            self.dismiss()
-        }
-        Group {
-            if let picker = _picker {
-                picker
-                    .background(Color.black)
-            } else {
-                CameraPickerUnavailable()
-            }
-        }
-        .onDisappear {
-            self.selectionClosure(self.result)
+        if let picker = CameraPickerNative(self.selectionClosure) {
+            picker
+                .background(Color.black)
+        } else {
+            CameraPickerUnavailable(self.selectionClosure)
         }
     }
 }
 
 internal struct CameraPickerNative: UIViewControllerRepresentable {
     
-    private let selectionClosure: LibraryPicker.JPEGSelection
+    private let selectionClosure: CameraPicker.JPEGSelection
     
-    internal init?(_ selection: @escaping LibraryPicker.JPEGSelection) {
+    internal init?(_ selection: @escaping CameraPicker.JPEGSelection) {
         if case .incapable = Permission.camera {
             return nil
         }
@@ -89,8 +77,8 @@ internal struct CameraPickerNative: UIViewControllerRepresentable {
 }
 
 internal class CameraPickerNativeDelegate: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    private let selectionClosure: LibraryPicker.JPEGSelection
-    internal init(_ selection: @escaping LibraryPicker.JPEGSelection) {
+    private let selectionClosure: CameraPicker.JPEGSelection
+    internal init(_ selection: @escaping CameraPicker.JPEGSelection) {
         self.selectionClosure = selection
     }
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
@@ -126,21 +114,21 @@ public struct CameraPicker: View {
     
     public var body: some View {
         CameraPickerUnavailable()
-            .onDisappear {
-                self.selectionClosure(self.result)
-            }
     }
 }
 #endif
 
 internal struct CameraPickerUnavailable: View {
-    @Environment(\.dismiss) private var dismiss
+    private let selectionClosure: CameraPicker.JPEGSelection
+    internal init(_ selection: @escaping CameraPicker.JPEGSelection) {
+        self.selectionClosure = selection
+    }
     @ViewBuilder internal var body: some View {
         NavigationView {
             Text("Unsupported")
                 .navigationTitle("Camera")
                 .toolbar {
-                    Button("Done") { self.dismiss() }
+                    Button("Done") { self.selectionClosure(nil) }
                 }
         }
     }
