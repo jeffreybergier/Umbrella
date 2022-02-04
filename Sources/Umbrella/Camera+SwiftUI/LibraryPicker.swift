@@ -29,10 +29,7 @@ public struct LibraryPicker: View {
     
     public typealias JPEGResult = Result<Data,Error>
     public typealias JPEGSelection = (JPEGResult?) -> Void
-    
-    @State private var result: JPEGResult?
-    @Environment(\.dismiss) private var dismiss
-    
+        
     private let selectionClosure: JPEGSelection
     
     public init(selection: @escaping JPEGSelection) {
@@ -40,19 +37,10 @@ public struct LibraryPicker: View {
     }
     
     public var body: some View {
-        let _picker = LibraryPickerNative() { result in
-            self.result = result
-            self.dismiss()
-        }
-        Group {
-            if let picker = _picker {
-                picker
-            } else {
-                LibraryPickerUnavailable()
-            }
-        }
-        .onDisappear {
-            self.selectionClosure(self.result)
+        if let picker = LibraryPickerNative(self.selectionClosure) {
+            picker
+        } else {
+            LibraryPickerUnavailable(self.selectionClosure)
         }
     }
 }
@@ -125,6 +113,7 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
 }
 #else
 public struct LibraryPicker: View {
+    
     public typealias JPEGResult = Result<Data,Error>
     public typealias JPEGSelection = (JPEGResult?) -> Void
     
@@ -136,21 +125,22 @@ public struct LibraryPicker: View {
     }
     public var body: some View {
         LibraryPickerUnavailable()
-            .onDisappear {
-                self.selectionClosure(self.result)
-            }
     }
 }
 #endif
 
 internal struct LibraryPickerUnavailable: View {
     @Environment(\.dismiss) private var dismiss
+    private let selectionClosure: LibraryPicker.JPEGSelection
+    internal init(_ selection: @escaping LibraryPicker.JPEGSelection) {
+        self.selectionClosure = selection
+    }
     @ViewBuilder internal var body: some View {
         NavigationView {
             Text("Unsupported")
                 .navigationTitle("Camera")
                 .toolbar {
-                    Button("Done") { self.dismiss() }
+                    Button("Done") { self.selectionClosure(nil) }
                 }
         }
     }
