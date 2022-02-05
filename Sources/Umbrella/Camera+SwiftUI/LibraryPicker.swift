@@ -111,12 +111,9 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
 #else
 public struct LibraryPicker: View {
     
-    public typealias JPEGResult = Result<Data,Error>
-    public typealias JPEGSelection = (JPEGResult?) -> Void
+    private let selectionClosure: CameraSelection
     
-    private let selectionClosure: JPEGSelection
-    
-    public init(selection: @escaping JPEGSelection) {
+    public init(selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     public var body: some View {

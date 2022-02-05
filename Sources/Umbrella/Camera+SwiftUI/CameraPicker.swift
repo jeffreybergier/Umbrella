@@ -97,12 +97,9 @@ internal class CameraPickerNativeDelegate: NSObject, UIImagePickerControllerDele
 #else
 public struct CameraPicker: View {
     
-    public typealias JPEGResult = Result<Data,Error>
-    public typealias JPEGSelection = (JPEGResult?) -> Void
+    private let selectionClosure: CameraSelection
     
-    private let selectionClosure: JPEGSelection
-    
-    public init(selection: @escaping JPEGSelection) {
+    public init(selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     
