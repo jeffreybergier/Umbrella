@@ -27,12 +27,9 @@ import UniformTypeIdentifiers
 
 public struct CameraPicker: View {
     
-    public typealias JPEGResult = Result<Data,Error>
-    public typealias JPEGSelection = (JPEGResult?) -> Void
+    private let selectionClosure: CameraSelection
     
-    private let selectionClosure: JPEGSelection
-    
-    public init(selection: @escaping JPEGSelection) {
+    public init(selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     
@@ -48,9 +45,9 @@ public struct CameraPicker: View {
 
 internal struct CameraPickerNative: UIViewControllerRepresentable {
     
-    private let selectionClosure: CameraPicker.JPEGSelection
+    private let selectionClosure: CameraSelection
     
-    internal init?(_ selection: @escaping CameraPicker.JPEGSelection) {
+    internal init?(_ selection: @escaping CameraSelection) {
         if case .incapable = Permission.camera {
             return nil
         }
@@ -77,20 +74,18 @@ internal struct CameraPickerNative: UIViewControllerRepresentable {
 }
 
 internal class CameraPickerNativeDelegate: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    private let selectionClosure: CameraPicker.JPEGSelection
-    internal init(_ selection: @escaping CameraPicker.JPEGSelection) {
+    private let selectionClosure: CameraSelection
+    internal init(_ selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let _image = (info[.editedImage] as? UIImage) ?? (info[.originalImage] as? UIImage)
         guard let image = _image else {
-            // TODO: Create error here
-            self.selectionClosure(nil)
+            self.selectionClosure(.failure(.capture))
             return
         }
         guard let data = image.jpegData(compressionQuality: 0.8) else {
-            // TODO: Create error here
-            self.selectionClosure(nil)
+            self.selectionClosure(.failure(.compression))
             return
         }
         self.selectionClosure(.success(data))
@@ -118,8 +113,8 @@ public struct CameraPicker: View {
 #endif
 
 internal struct CameraPickerUnavailable: View {
-    private let selectionClosure: CameraPicker.JPEGSelection
-    internal init(_ selection: @escaping CameraPicker.JPEGSelection) {
+    private let selectionClosure: CameraSelection
+    internal init(_ selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     @ViewBuilder internal var body: some View {

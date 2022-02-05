@@ -26,13 +26,10 @@ import UIKit
 import PhotosUI
 
 public struct LibraryPicker: View {
-    
-    public typealias JPEGResult = Result<Data,Error>
-    public typealias JPEGSelection = (JPEGResult?) -> Void
         
-    private let selectionClosure: JPEGSelection
+    private let selectionClosure: CameraSelection
     
-    public init(selection: @escaping JPEGSelection) {
+    public init(selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     
@@ -47,9 +44,9 @@ public struct LibraryPicker: View {
 
 fileprivate struct LibraryPickerNative: UIViewControllerRepresentable {
     
-    private let selectionClosure: LibraryPicker.JPEGSelection
+    private let selectionClosure: CameraSelection
     
-    internal init?(_ selection: @escaping LibraryPicker.JPEGSelection) {
+    internal init?(_ selection: @escaping CameraSelection) {
         if Permission.libraryImplicit == false {
             return nil
         }
@@ -69,8 +66,8 @@ fileprivate struct LibraryPickerNative: UIViewControllerRepresentable {
 }
 
 internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDelegate {
-    private let selectionClosure: LibraryPicker.JPEGSelection
-    internal init(_ selection: @escaping LibraryPicker.JPEGSelection) {
+    private let selectionClosure: CameraSelection
+    internal init(_ selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
@@ -79,12 +76,12 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
             self.selectionClosure(nil)
             return
         }
-        var result: LibraryPicker.JPEGResult?
+        var result: CameraResult?
         let wait1 = DispatchSemaphore(value: 0)
         item.loadDataRepresentation(forTypeIdentifier: UTType.jpeg.identifier) { _data, error in
             if let error = error {
                 error.log()
-                result = .failure(error)
+                result = .failure(.format)
             } else if let data = _data {
                 result = .success(data)
             } else {
@@ -98,7 +95,7 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
             item.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { _data, error in
                 if let error = error {
                     error.log()
-                    result = .failure(error)
+                    result = .failure(.format)
                 } else if let data = _data {
                     result = .success(data)
                 } else {
@@ -130,8 +127,8 @@ public struct LibraryPicker: View {
 
 internal struct LibraryPickerUnavailable: View {
     @Environment(\.dismiss) private var dismiss
-    private let selectionClosure: LibraryPicker.JPEGSelection
-    internal init(_ selection: @escaping LibraryPicker.JPEGSelection) {
+    private let selectionClosure: CameraSelection
+    internal init(_ selection: @escaping CameraSelection) {
         self.selectionClosure = selection
     }
     @ViewBuilder internal var body: some View {
