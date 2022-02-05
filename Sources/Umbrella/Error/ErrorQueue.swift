@@ -24,37 +24,20 @@
 //
 
 import SwiftUI
-import DequeModule
+import Collections
 
 @propertyWrapper
-public struct ErrorQueue: DynamicProperty {
-    public static func environmentObject() -> BlackBox<Deque<Error>> {
-        BlackBox<Deque<Error>>([])
+public struct EnvironmentQueue<T>: DynamicProperty {
+    public static func environmentObject() -> BlackBox<Deque<T>> {
+        BlackBox<Deque<T>>([])
     }
-    @EnvironmentObject private var store: BlackBox<Deque<Error>>
+    @EnvironmentObject private var store: BlackBox<Deque<T>>
     public init() {}
-    public var wrappedValue: Deque<Error> {
+    public var wrappedValue: Deque<T> {
         get { self.store.value }
         nonmutating set { self.store.value = newValue }
     }
-    public var projectedValue: Binding<Deque<Error>> {
-        Binding { self.wrappedValue }
-        set: { self.store.value = $0 }
-    }
-}
-
-@propertyWrapper
-public struct UserFacingErrorQueue: DynamicProperty {
-    public static func environmentObject() -> BlackBox<Deque<UserFacingError>> {
-        BlackBox<Deque<UserFacingError>>([])
-    }
-    @EnvironmentObject private var store: BlackBox<Deque<UserFacingError>>
-    public init() {}
-    public var wrappedValue: Deque<UserFacingError> {
-        get { self.store.value }
-        nonmutating set { self.store.value = newValue }
-    }
-    public var projectedValue: Binding<Deque<UserFacingError>> {
+    public var projectedValue: Binding<Deque<T>> {
         Binding { self.wrappedValue }
         set: { self.store.value = $0 }
     }
