@@ -26,12 +26,12 @@
 
 import SwiftUI
 
-public struct JSBTextField: View {
+public struct JSBTextField<T: StringProtocol>: View {
     
-    private let titleKey: LocalizedStringKey
+    private let titleKey: T
     @Binding private var text: String?
     
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String?>) {
+    public init(_ titleKey: T, text: Binding<String?>) {
         self.titleKey = titleKey
         _text = text
     }

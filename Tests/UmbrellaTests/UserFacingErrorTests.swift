@@ -25,19 +25,18 @@
 //
 
 import XCTest
-import SwiftUI
 import Umbrella
 
 enum ImplicitError: UserFacingError {
-    var message: LocalizedStringKey { "My Explicit Message" }
+    var message: String { "My Explicit Message" }
     case all
 }
 
 enum ExplicitError: UserFacingError {
     static var errorDomain: String = "MyExplicitErrorDomain"
-    var message: LocalizedStringKey { "My Explicit Message" }
-    var title: LocalizedStringKey { "MyExplicitTitle" }
-    var dismissTitle: LocalizedStringKey { "MyExplicitDismiss" }
+    var message: String { "My Explicit Message" }
+    var title: String { "MyExplicitTitle" }
+    var dismissTitle: String { "MyExplicitDismiss" }
     var errorCode: Int { 123_456_789 }
     var errorUserInfo: [String : Any] { ["A": 10] }
     var options: [RecoveryOption] { [.init(title: "MyExplicitOption1", isDestructive: true, perform: {})] }
@@ -47,8 +46,8 @@ enum ExplicitError: UserFacingError {
 class UserFacingErrorTests: XCTestCase {
     
     func test_localizations() {
-        XCTAssertEqual(ImplicitError.all.title, "Noun.Error")
-        XCTAssertEqual(ImplicitError.all.dismissTitle, "Verb.Dismiss")
+        XCTAssertEqual(ImplicitError.all.title, "Error")
+        XCTAssertEqual(ImplicitError.all.dismissTitle, "Dismiss")
         XCTAssertEqual(ExplicitError.all.title, "MyExplicitTitle")
         XCTAssertEqual(ExplicitError.all.dismissTitle, "MyExplicitDismiss")
     }

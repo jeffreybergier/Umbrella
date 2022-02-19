@@ -24,17 +24,17 @@
 //  SOFTWARE.
 //
 
-import SwiftUI
+import Foundation
 
 public struct GenericError: UserFacingError {
     public var errorCode: Int
     public var errorUserInfo: [String : Any]
-    public var message: LocalizedStringKey
+    public var message: String
     public var options: [RecoveryOption]
     
     public init(errorCode: Int,
                 errorUserInfo: [String : Any] = [:],
-                message: LocalizedStringKey,
+                message: String,
                 options: [RecoveryOption] = [])
     {
         self.errorCode = errorCode

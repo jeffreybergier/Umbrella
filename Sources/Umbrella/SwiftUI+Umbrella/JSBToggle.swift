@@ -26,13 +26,13 @@
 
 import SwiftUI
 
-public struct JSBToggle: View {
+public struct JSBToggle<T: StringProtocol>: View {
     
-    private let titleKey: LocalizedStringKey
+    private let titleKey: T
     private let isFlipped: Bool
     @Binding private var isOn: Bool
     
-    public init(_ titleKey: LocalizedStringKey,
+    public init(_ titleKey: T,
                 isOn: Binding<Bool>,
                 isFlipped: Bool = false)
     {

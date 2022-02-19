@@ -24,7 +24,6 @@
 //  SOFTWARE.
 //
 
-import SwiftUI
 import CoreData
 import Combine
 import CloudKit
@@ -53,8 +52,8 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
                 return 1003
             }
         }
-        public var title: LocalizedStringKey { "Noun.iCloud" }
-        public var message: LocalizedStringKey {
+        public var title: String { "iCloud" }
+        public var message: String {
             switch self {
             case .accountStatus:
                 return "Phrase.ErroriCloudAccount"

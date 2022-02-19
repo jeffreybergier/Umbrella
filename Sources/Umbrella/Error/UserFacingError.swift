@@ -24,16 +24,16 @@
 //  SOFTWARE.
 //
 
-import SwiftUI
+import Foundation
 
 public typealias UFError = UserFacingError
 
 public protocol UserFacingError: CustomNSError {
-    /// Default implementation is "Noun.Error"
-    var title: LocalizedStringKey { get }
-    var message: LocalizedStringKey { get }
-    /// Default implementation is "Verb.Dismiss"
-    var dismissTitle: LocalizedStringKey { get }
+    /// Default implementation is "Error"
+    var title: String { get }
+    var message: String { get }
+    /// Default implementation is "Dismiss"
+    var dismissTitle: String { get }
     var isCritical: Bool { get }
     /// Default implementation is empty.
     /// If options are present the Alert/UI for the error should show the options
@@ -42,10 +42,10 @@ public protocol UserFacingError: CustomNSError {
 
 public struct RecoveryOption: Identifiable {
     public var id = Int.random(in: 0..<Int.max)
-    public var title: LocalizedStringKey
+    public var title: String
     public var isDestructive: Bool
     public var perform: () -> Void
-    public init(title: LocalizedStringKey,
+    public init(title: String,
                 isDestructive: Bool = false,
                 perform: @escaping () -> Void)
     {
@@ -57,12 +57,12 @@ public struct RecoveryOption: Identifiable {
 
 extension UserFacingError {
     /// Default implementation. Override to customize
-    public var title: LocalizedStringKey {
-        return "Noun.Error"
+    public var title: String {
+        return "Error"
     }
     /// Default implementation. Override to customize
-    public var dismissTitle: LocalizedStringKey {
-        return "Verb.Dismiss"
+    public var dismissTitle: String {
+        return "Dismiss"
     }
     
     public var options: [RecoveryOption] {

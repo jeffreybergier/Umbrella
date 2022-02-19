@@ -26,14 +26,14 @@
 
 import SwiftUI
 
-public struct JSBAlert<P, A: View, M: View>: ViewModifier {
+public struct JSBAlert<P, A: View, M: View, T: StringProtocol>: ViewModifier {
     @Binding private var isPresented: Bool
-    private var titleKey: LocalizedStringKey
+    private var titleKey: T
     private var presenting: P?
     private var actions: (P) -> A
     private var message: (P) -> M
     public init(item: Binding<P?>,
-                titleKey: LocalizedStringKey,
+                titleKey: T,
                 @ViewBuilder message: @escaping (P) -> M,
                 @ViewBuilder actions: @escaping (P) -> A)
     {

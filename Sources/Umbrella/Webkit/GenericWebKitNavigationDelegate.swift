@@ -26,7 +26,6 @@
 
 #if canImport(WebKit)
 import WebKit
-import SwiftUI
 import Collections
 
 /// Provides a basic WKNavigationDelegate with expected behavior for showing simple web views.
@@ -42,7 +41,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                 return 1001
             }
         }
-        public var message: LocalizedStringKey {
+        public var message: String {
             switch self {
             case .invalidURL(let url):
                 return "Phrase.ErrorInvalidURL\(url.absoluteString)"

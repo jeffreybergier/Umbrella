@@ -26,13 +26,13 @@
 
 import SwiftUI
 
-public struct JSBConfirmationDialog<P, A: View>: ViewModifier {
+public struct JSBConfirmationDialog<P, A: View, T: StringProtocol>: ViewModifier {
     @Binding private var isPresented: Bool
-    private var titleKey: LocalizedStringKey
+    private var titleKey: T
     private var presenting: P?
     private var actions: (P) -> A
     public init(item: Binding<P?>,
-                titleKey: LocalizedStringKey,
+                titleKey: T,
                 @ViewBuilder actions: @escaping (P) -> A)
     {
         self.titleKey = titleKey

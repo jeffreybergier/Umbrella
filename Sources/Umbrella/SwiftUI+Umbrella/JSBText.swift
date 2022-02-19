@@ -33,12 +33,12 @@ public struct isFallbackKey: PreferenceKey {
     }
 }
 
-public struct JSBText<S: StringProtocol>: View {
+public struct JSBText<T: StringProtocol, S: StringProtocol>: View {
     
-    private let titleKey: LocalizedStringKey
+    private let titleKey: T
     private let text: S?
     
-    public init(_ titleKey: LocalizedStringKey, text: S?) {
+    public init(_ titleKey: T, text: S?) {
         self.titleKey = titleKey
         self.text = text
     }

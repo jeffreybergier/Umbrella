@@ -42,20 +42,11 @@ class GenericErrorTests: XCTestCase {
     func test_initWithNSError() {
         let error = GenericError(self.realError)
         XCTAssertEqual(error.errorCode, 260)
-        XCTAssertEqual(error.message.TEST_key, self.realError.localizedDescription)
+        XCTAssertEqual(error.message, self.realError.localizedDescription)
         XCTAssertEqual(Set(error.errorUserInfo.keys),
                        Set(["NSUnderlyingError", "NSFilePath", "NSUserStringVariant"]))
         
         // Sanity tests
         XCTAssertNil(self.realError.localizedRecoverySuggestion)
-    }
-}
-
-extension LocalizedStringKey {
-    var TEST_key: String {
-        let description = "\(self)"
-        let components = description.components(separatedBy: "key: \"")
-            .map { $0.components(separatedBy: "\",") }
-        return components[1][0]
     }
 }
