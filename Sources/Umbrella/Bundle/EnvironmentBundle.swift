@@ -29,6 +29,10 @@ import SwiftUI
 // Useful regex for finding strings
 // (["'])(?:(?=(\\?))\2.)*?\1
 
+// TODO: Change LocalizationKey into a real type?
+public typealias LocalizedString = String
+public typealias LocalizationKey = String
+
 public class EnvironmentBundleObject: ObservableObject {
     public let bundle: Bundle
     public init(_ bundle: Bundle = .main) {
@@ -37,7 +41,7 @@ public class EnvironmentBundleObject: ObservableObject {
     public func image(named: String) -> Image? {
         Image(named, bundle: self.bundle)
     }
-    public func localized(key: String) -> String {
+    public func localized(key: LocalizationKey) -> LocalizedString {
         self.bundle.localizedString(forKey: key, value: nil, table: nil)
     }
     public func url(name: String, extension: String) {
