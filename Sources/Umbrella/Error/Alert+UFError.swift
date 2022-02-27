@@ -30,13 +30,23 @@ public typealias UFEAlert = UserFacingErrorAlert
 
 public struct UserFacingErrorAlert: ViewModifier {
     
+    /// See EnvironmentBundle file for information
+    public enum Configuration {
+        case mainBundle, environmentBundle
+    }
+    
     @Binding private var error: UserFacingError?
     private let dismissAction: ((UserFacingError) -> Void)?
     
+    private let config: Configuration
+    @EnvironmentBundle private var bundle
+    
     public init(_ error: Binding<UserFacingError?>,
+                config: Configuration = .environmentBundle,
                 dismissAction: ((UserFacingError) -> Void)? = nil)
     {
         _error = error
+        self.config = config
         self.dismissAction = dismissAction
     }
     
@@ -44,25 +54,35 @@ public struct UserFacingErrorAlert: ViewModifier {
         content.modifier(self.render())
     }
     
+    /// shortcut function
+    private func sc(_ key: LocalizationKey) -> LocalizedString {
+        switch self.config {
+        case .mainBundle:
+            return Bundle.main.localizedString(forKey: key, value: nil, table: nil)
+        case .environmentBundle:
+            return self.bundle.localized(key: key)
+        }
+    }
+    
     private func render() -> some ViewModifier {
         JSBAlert(item: self.$error,
-                 titleKey: self.error?.title ?? "Noun.Error",
-                 message: { Text($0.message) })
+                 titleKey: self.sc(self.error?.title ?? ""),
+                 message: { Text(self.sc($0.message)) })
         { error in
             ForEach(error.options) { option in
                 if option.isDestructive {
-                    Button(option.title, role: .destructive) {
+                    Button(self.sc(option.title), role: .destructive) {
                         option.perform()
                         self.dismissAction?(error)
                     }
                 } else {
-                    Button(option.title) {
+                    Button(self.sc(option.title)) {
                         option.perform()
                         self.dismissAction?(error)
                     }
                 }
             }
-            Button(error.dismissTitle, role: .cancel) {
+            Button(self.sc(error.dismissTitle), role: .cancel) {
                 self.dismissAction?(error)
             }
         }
