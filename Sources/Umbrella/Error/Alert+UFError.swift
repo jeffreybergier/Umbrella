@@ -28,25 +28,22 @@ import SwiftUI
 
 public typealias UFEAlert = UserFacingErrorAlert
 
-public struct UserFacingErrorAlert: ViewModifier {
+public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol>: ViewModifier {
     
     /// See EnvironmentBundle file for information
-    public enum Configuration {
-        case mainBundle, environmentBundle
+    public enum Configuration<T: EnvironmentBundleProtocol> {
+        case mainBundle, environmentBundle(EnvironmentBundle<T>)
     }
     
     @Binding private var error: UserFacingError?
     private let dismissAction: ((UserFacingError) -> Void)?
     
-    private let config: Configuration
-    @EnvironmentBundle private var bundle
+    @EnvironmentBundle<B> private var bundle
     
     public init(_ error: Binding<UserFacingError?>,
-                config: Configuration = .environmentBundle,
                 dismissAction: ((UserFacingError) -> Void)? = nil)
     {
         _error = error
-        self.config = config
         self.dismissAction = dismissAction
     }
     
@@ -56,12 +53,7 @@ public struct UserFacingErrorAlert: ViewModifier {
     
     /// shortcut function
     private func sc(_ key: LocalizationKey) -> LocalizedString {
-        switch self.config {
-        case .mainBundle:
-            return Bundle.main.localizedString(forKey: key, value: nil, table: nil)
-        case .environmentBundle:
-            return self.bundle.localized(key: key)
-        }
+        return self.bundle.localized(key: key)
     }
     
     private func render() -> some ViewModifier {

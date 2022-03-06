@@ -33,29 +33,28 @@ import SwiftUI
 public typealias LocalizedString = String
 public typealias LocalizationKey = String
 
-public class EnvironmentBundleObject: ObservableObject {
-    public let bundle: Bundle
-    public init(_ bundle: Bundle = .main) {
-        self.bundle = bundle
-    }
-    public func image(named: String) -> Image? {
-        Image(named, bundle: self.bundle)
-    }
-    public func localized(key: LocalizationKey) -> LocalizedString {
-        self.bundle.localizedString(forKey: key, value: nil, table: nil)
-    }
-    public func url(name: String, extension: String) {
-        self.bundle.url(forResource: name, withExtension: `extension`)
+/// Use to localize strings, find images, or other assets from Bundles placed into the environment.
+/// Implement class that conforms to `EnvironmentBundleProtocol` and then place it in the environment.
+@propertyWrapper public struct EnvironmentBundle<B: EnvironmentBundleProtocol>: DynamicProperty {
+    @EnvironmentObject private var bundle: B
+    public init() {}
+    public var wrappedValue: B {
+        return self.bundle
     }
 }
 
-@propertyWrapper public struct EnvironmentBundle: DynamicProperty {
-    
-    @EnvironmentObject private var bundle: EnvironmentBundleObject
-    
-    public init() {}
-    
-    public var wrappedValue: EnvironmentBundleObject {
-        return self.bundle
+public protocol EnvironmentBundleProtocol: ObservableObject {
+    var bundle: Bundle { get }
+}
+
+extension EnvironmentBundleProtocol {
+    public func image(named: String) -> Image? {
+        return Image(named, bundle: self.bundle)
+    }
+    public func localized(key: LocalizationKey) -> LocalizedString {
+        return self.bundle.localizedString(forKey: key, value: nil, table: nil)
+    }
+    public func url(name: String, extension: String) -> URL? {
+        return self.bundle.url(forResource: name, withExtension: `extension`)
     }
 }
