@@ -47,6 +47,19 @@ public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol>: ViewModifier {
         self.dismissAction = dismissAction
     }
     
+    // TODO: Not sure if this init works
+    public init(_ error: Binding<UserFacingError>?,
+                dismissAction: ((UserFacingError) -> Void)? = nil)
+    {
+        _error = Binding {
+            return error?.wrappedValue
+        } set: {
+            guard let newValue = $0 else { return }
+            error?.wrappedValue = newValue
+        }
+        self.dismissAction = dismissAction
+    }
+    
     public func body(content: Content) -> some View {
         content.modifier(self.render())
     }

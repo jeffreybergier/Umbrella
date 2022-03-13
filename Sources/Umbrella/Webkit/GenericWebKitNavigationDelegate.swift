@@ -51,6 +51,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     
     public typealias OnError = (UserFacingError) -> Void
     
+    // TODO: This needs to be a reference type
     public var errors: Deque<UFError>
     public var onError: OnError?
     
