@@ -46,6 +46,22 @@ public struct EnvironmentQueue<T>: DynamicProperty {
         return BlackBox(Deque<T>(), isObservingValue: true)
     }
     
+    public static func legacyBinding(_ environment: Environment) -> Binding<T?> {
+        Binding {
+            environment.value.first
+        } set: {
+            if let newValue = $0 {
+                environment.value.append(newValue)
+            } else {
+                guard environment.value.isEmpty == false else {
+                    "Tried to remove error from queue when it was already empty".log()
+                    return
+                }
+                environment.value.removeFirst()
+            }
+        }
+    }
+    
     @EnvironmentObject public var environment: Environment
     
     public init() {}
@@ -54,27 +70,11 @@ public struct EnvironmentQueue<T>: DynamicProperty {
     /// queue. Set to NIL to remove the first error from the queue. Directly access `environment`
     /// property if you wish to manually modify the queue.
     public var wrappedValue: T? {
-        get {
-            return self.environment.value.first
-        }
-        nonmutating set {
-            if let newValue = newValue {
-                self.environment.value.append(newValue)
-            } else {
-                guard self.environment.value.isEmpty == false else {
-                    "Tried to remove error from queue when it was already empty".log()
-                    return
-                }
-                self.environment.value.removeFirst()
-            }
-        }
+        get { self.projectedValue.wrappedValue }
+        nonmutating set { self.projectedValue.wrappedValue = newValue }
     }
     
     public var projectedValue: Binding<T?> {
-        Binding {
-            self.wrappedValue
-        } set: {
-            self.wrappedValue = $0
-        }
+        Self.legacyBinding(self.environment)
     }
 }
