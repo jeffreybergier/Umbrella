@@ -36,7 +36,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     public var onWrite: WriteTransform?
     private let objectIDURL: URL
     
-    @StateObject private var object: NilBox<In> = .init()
+    @StateObject public var object: NilBox<In> = .init()
     
     @EnvironmentQueue<E> private var errorQ
     @Environment(\.managedObjectContext) private var context
