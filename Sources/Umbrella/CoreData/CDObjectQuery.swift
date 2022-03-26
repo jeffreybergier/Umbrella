@@ -32,14 +32,15 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     public typealias ReadTransform = (In) -> Out
     public typealias WriteTransform = (In?, Out?) -> Result<Void, E>
     
-    public var onRead: ReadTransform
-    public var onWrite: WriteTransform?
     private let objectIDURL: URL
-    
-    @StateObject public var object: NilBox<In> = .init()
+    public let onRead: ReadTransform
     
     @EnvironmentQueue<E> private var errorQ
     @Environment(\.managedObjectContext) private var context
+    
+    @StateObject public var object: NilBox<In> = .init()
+    @StateObject public var onWrite: BlackBox<WriteTransform?>
+    @StateObject private var needsUpdate = BlackBox(true, isObservingValue: false)
     
     public init(objectIDURL: URL,
                 onWrite: WriteTransform? = nil,
@@ -47,10 +48,9 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     {
         self.objectIDURL = objectIDURL
         self.onRead = onRead
-        self.onWrite = onWrite
+        _onWrite = .init(wrappedValue: BlackBox(onWrite, isObservingValue: false))
     }
     
-    @StateObject private var needsUpdate = BlackBox(true, isObservingValue: false)
     public mutating func update() {
         guard self.needsUpdate.value else { return }
         self.needsUpdate.value = false
@@ -80,7 +80,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     }
     
     private func write(newValue: Out?) {
-        guard let onWrite = self.onWrite else {
+        guard let onWrite = self.onWrite.value else {
             assertionFailure("Attempted to write value, but no write closure was given")
             return
         }

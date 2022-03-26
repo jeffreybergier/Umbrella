@@ -32,10 +32,11 @@ public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
     public typealias ReadTransform = (In) -> Out
     public typealias WriteTransform = (In, Out) -> Result<Void, E>
     
-    public var onRead: ReadTransform
-    public var onWrite: WriteTransform?
-    @FetchRequest public var request: FetchedResults<In>
+    public let onRead: ReadTransform
+    @StateObject public var onWrite: BlackBox<WriteTransform?>
+    
     @EnvironmentQueue<E> private var errorQ
+    @FetchRequest public var request: FetchedResults<In>
 
     public init(sort: [NSSortDescriptor] = [],
                 predicate: NSPredicate? = nil,
@@ -48,7 +49,7 @@ public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
                          predicate: predicate,
                          animation: animation)
         self.onRead = onRead
-        self.onWrite = onWrite
+        _onWrite = .init(wrappedValue: BlackBox(onWrite, isObservingValue: false))
     }
     
     public var wrappedValue: AnyRandomAccessCollection<Out> {
@@ -63,7 +64,7 @@ public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
             Binding {
                 self.onRead(cd)
             } set: { newValue in
-                guard let onWrite = self.onWrite else {
+                guard let onWrite = self.onWrite.value else {
                     assertionFailure("Attempted to write value, but no write closure was given")
                     return
                 }

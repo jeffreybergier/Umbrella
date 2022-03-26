@@ -38,7 +38,6 @@ public class BlackBox<Value>: ObservableObject {
             self.objectWillChange.send()
         }
         didSet {
-            ("BlackBoxDidSet: " + String(describing: self.value)).log(as: .verbose)
             guard self.isObservingValue else { return }
             self.objectDidChange.send()
         }
