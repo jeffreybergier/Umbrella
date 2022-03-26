@@ -27,51 +27,64 @@ import CoreData
 import SwiftUI
 
 @propertyWrapper
-public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
+public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
     
     public typealias ReadTransform = (In) -> Out
-    public typealias WriteTransform = (In, Out) -> Result<Void, E>
+    public typealias WriteTransform = (In?, Out?) -> Result<Void, E>
     
     public var onRead: ReadTransform
     public var onWrite: WriteTransform?
-    @FetchRequest public var request: FetchedResults<In>
+    private let objectIDURL: URL
+    
+    @StateObject private var object: NilBox<In> = .init()
+    
     @EnvironmentQueue<E> private var errorQ
-
-    public init(sort: [NSSortDescriptor] = [],
-                predicate: NSPredicate? = nil,
-                animation: Animation? = nil,
+    @Environment(\.managedObjectContext) private var context
+    
+    public init(objectIDURL: URL,
                 onWrite: WriteTransform? = nil,
                 onRead: @escaping ReadTransform)
     {
-        _request = .init(entity: In.entity(),
-                         sortDescriptors: sort,
-                         predicate: predicate,
-                         animation: animation)
+        self.objectIDURL = objectIDURL
         self.onRead = onRead
         self.onWrite = onWrite
     }
     
-    public var wrappedValue: AnyRandomAccessCollection<Out> {
-        TransformCollection(collection: self.request) { cd in
-            self.onRead(cd)
+    @StateObject private var needsUpdate = BlackBox(true, isObservingValue: false)
+    public mutating func update() {
+        guard self.needsUpdate.value else { return }
+        self.needsUpdate.value = false
+        guard
+            let psc = self.context.persistentStoreCoordinator,
+            let id = psc.managedObjectID(forURIRepresentation: self.objectIDURL),
+            let object = self.context.object(with: id) as? In
+        else {
+            // TODO: Create error here
+            return
         }
-        .eraseToAnyRandomAccessCollection()
+        self.object.value = object
     }
     
-    public var projectedValue: AnyRandomAccessCollection<Binding<Out>> {
-        TransformCollection(collection: self.request) { cd in
-            Binding {
-                self.onRead(cd)
-            } set: { newValue in
-                guard let onWrite = self.onWrite else {
-                    assertionFailure("Attempted to write value, but no write closure was given")
-                    return
-                }
-                guard let error = onWrite(cd, newValue).error else { return }
-                self.errorQ = error
-            }
-        }
-        .eraseToAnyRandomAccessCollection()
+    public var wrappedValue: Out? {
+        get { self.object.value.map(self.onRead) }
+        nonmutating set { self.write(newValue: newValue) }
     }
     
+    public var projectedValue: Binding<Out>? {
+        guard let object = self.object.value else { return nil }
+        return Binding {
+            self.onRead(object)
+        } set: {
+            self.write(newValue: $0)
+        }
+    }
+    
+    private func write(newValue: Out?) {
+        guard let onWrite = self.onWrite else {
+            assertionFailure("Attempted to write value, but no write closure was given")
+            return
+        }
+        guard let error = onWrite(self.object.value, newValue).error else { return }
+        self.errorQ = error
+    }
 }
