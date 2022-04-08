@@ -26,6 +26,16 @@
 
 import SwiftUI
 
+extension Binding {
+    public func map<New>(forward: @escaping (Value) -> New, reverse: @escaping (New) -> Value) -> Binding<New> {
+        return Binding<New> {
+            forward(self.wrappedValue)
+        } set: {
+            self.wrappedValue = reverse($0)
+        }
+    }
+}
+
 #if os(iOS)
 extension Binding where Value == EditMode {
     public var isEditing: Bool {
