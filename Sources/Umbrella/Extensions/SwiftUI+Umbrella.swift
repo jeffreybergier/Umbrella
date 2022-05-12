@@ -88,6 +88,18 @@ public enum Force {
             #endif
         }
     }
+    public struct ListRowSeparatorHidden: ViewModifier {
+        public init() {}
+        public func body(content: Content) -> some View {
+            #if os(tvOS)
+            return content.listRowSeparator(.hidden)
+            #elseif os(iOS)
+            return content.listRowSeparator(.hidden)
+            #else
+            return content
+            #endif
+        }
+    }
     
     @available(iOS 14.0, *)
     public struct SidebarStyle: ViewModifier {
