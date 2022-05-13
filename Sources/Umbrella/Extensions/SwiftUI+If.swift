@@ -42,6 +42,18 @@ extension View {
             self
         }
     }
+    
+    @ViewBuilder public func `if`<Input, Output: View>(
+        _ item: Input?,
+        _ modify: (Self, Input) -> Output
+    ) -> some View
+    {
+        if let item = item {
+            modify(self, item)
+        } else {
+            self
+        }
+    }
 }
 
 extension Platform {
