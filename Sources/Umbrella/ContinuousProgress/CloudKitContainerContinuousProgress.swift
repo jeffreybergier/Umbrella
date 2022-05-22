@@ -76,7 +76,7 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
         self.progress = .init(totalUnitCount: 0)
         self.progress.completedUnitCount = 0
         guard container is NSPersistentCloudKitContainer else {
-            log.error("CloudKitContainerContinuousProgress can only be show progress of sync with NSPersistentCloudKitContainer")
+            NSLog("CloudKitContainerContinuousProgress can only be show progress of sync with NSPersistentCloudKitContainer")
             return
         }
         let nc = NotificationCenter.default
@@ -97,7 +97,7 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
             DispatchQueue.main.async {
                 self.objectWillChange.send()
                 if let error = error {
-                    log.error(error)
+                    NSLog("\(error)")
                     let error = error as NSError
                     self.initializeError = Error.accountStatusCritical(error)
                     return
@@ -121,26 +121,22 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
         DispatchQueue.main.async {
             self.objectWillChange.send()
             if let error = event.error {
-                log.error(error)
+                NSLog("\(error)")
                 let error = error as NSError
                 self.errors.append(Error.sync(error))
             }
             if self.io.contains(event.identifier) {
-                log.debug("- \(event.identifier)")
                 self.io.remove(event.identifier)
                 self.progress.completedUnitCount += 1
             } else {
-                log.debug("+ \(event.identifier)")
                 self.io.insert(event.identifier)
                 self.progress.totalUnitCount += 1
             }
-            log.debug("progress: \(self.progress.completedUnitCount) / \(self.progress.totalUnitCount)")
         }
     }
     
     deinit {
         NotificationCenter.default.removeObserver(self, name: self.syncName, object: nil)
         NotificationCenter.default.removeObserver(self, name: self.accountName, object: nil)
-        log.verbose()
     }
 }

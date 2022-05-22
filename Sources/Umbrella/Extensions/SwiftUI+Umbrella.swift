@@ -91,9 +91,7 @@ public enum Force {
     public struct ListRowSeparatorHidden: ViewModifier {
         public init() {}
         public func body(content: Content) -> some View {
-            #if os(tvOS)
-            return content.listRowSeparator(.hidden)
-            #elseif os(iOS)
+            #if os(iOS)
             return content.listRowSeparator(.hidden)
             #else
             return content

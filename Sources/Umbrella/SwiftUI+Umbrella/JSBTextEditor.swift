@@ -35,12 +35,12 @@ public struct JSBTextEditor: View {
     }
     
     public var body: some View {
-        #if os(watchOS)
-        TextField("", text: Binding(get: { self.text ?? "" },
-                                    set: { self.text = $0.trimmed }))
-        #else
+        #if os(iOS) || os(macOS)
         TextEditor(text: Binding(get: { self.text ?? "" },
                                  set: { self.text = $0.trimmed }))
+        #else
+        TextField("", text: Binding(get: { self.text ?? "" },
+                                    set: { self.text = $0.trimmed }))
         #endif
     }
 }

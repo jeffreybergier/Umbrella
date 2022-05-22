@@ -54,7 +54,7 @@ public struct EnvironmentQueue<T>: DynamicProperty {
                 environment.value.append(newValue)
             } else {
                 guard environment.value.isEmpty == false else {
-                    "Tried to remove error from queue when it was already empty".log()
+                    NSLog("Tried to remove error from queue when it was already empty")
                     return
                 }
                 environment.value.removeFirst()

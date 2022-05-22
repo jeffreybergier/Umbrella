@@ -28,7 +28,7 @@ import Combine
 import Foundation
 #if os(macOS)
 import AppKit
-#elseif os(iOS)
+#elseif os(iOS) || os(tvOS)
 import UIKit
 #else
 import WatchKit
@@ -112,7 +112,7 @@ public enum CacheProtocolNotification {
         nc.publisher(for: NSApplication.didResignActiveNotification)
             .sink(receiveValue: clearCache)
             .store(in: &self.notificationTokens)
-        #elseif os(iOS)
+        #elseif os(iOS) || os(tvOS)
         nc.publisher(for: UIApplication.didEnterBackgroundNotification)
             .sink(receiveValue: clearCache)
             .store(in: &self.notificationTokens)
