@@ -26,98 +26,66 @@
 
 import SwiftUI
 
-extension Binding {
-    public func map<New>(forward: @escaping (Value) -> New, reverse: @escaping (New) -> Value) -> Binding<New> {
-        return Binding<New> {
-            forward(self.wrappedValue)
-        } set: {
-            self.wrappedValue = reverse($0)
+/// Cross-platform property wrapper for EditMode
+@propertyWrapper
+public struct EditMode: DynamicProperty {
+    
+    public init() {}
+
+    #if !os(macOS)
+    @Environment(\.editMode) private var editMode
+    public var wrappedValue: Bool {
+        get { self.editMode?.wrappedValue == .active }
+        nonmutating set {
+            self.editMode?.wrappedValue = newValue ? .active : .inactive
         }
     }
+    #else
+    public var wrappedValue: Bool { true }
+    #endif
 }
 
-#if os(iOS)
-extension Binding where Value == EditMode {
-    public var isEditing: Bool {
-        switch self.wrappedValue {
-        case .transient, .active:
-            return true
-        case .inactive:
-            fallthrough
-        @unknown default:
-            return false
-        }
-    }
-}
-
-extension UserInterfaceSizeClass {
-    public var isCompact: Bool {
-        switch self {
-        case .regular:
-            return false
-        case .compact:
-            fallthrough
-        @unknown default:
-            return true
-        }
-    }
-}
-#endif
-
-public enum Force {
-    public struct EditMode: ViewModifier {
-        #if os(iOS)
-        @State var editMode: SwiftUI.EditMode = .active
-        #endif
-        public init() {}
-        public func body(content: Content) -> some View {
-            #if os(iOS)
-            return content.environment((\.editMode), self.$editMode)
-            #else
-            return content
-            #endif
-        }
-    }
-    public struct PlainListStyle: ViewModifier {
-        public init() {}
-        public func body(content: Content) -> some View {
-            #if canImport(UIKit)
-            return content.listStyle(SwiftUI.PlainListStyle())
-            #else
-            return content
-            #endif
-        }
-    }
-    public struct ListRowSeparatorHidden: ViewModifier {
-        public init() {}
-        public func body(content: Content) -> some View {
-            #if os(iOS)
-            return content.listRowSeparator(.hidden)
-            #else
-            return content
-            #endif
-        }
+/// Cross-platform property wrapper for SizeClass
+@propertyWrapper
+public struct SizeClass: DynamicProperty {
+    
+    public struct Value {
+        public var horizontal: SizeClassValue
+        public var vertical: SizeClassValue
     }
     
-    @available(iOS 14.0, *)
-    public struct SidebarStyle: ViewModifier {
-        public init() {}
-        #if os(macOS)
-        public func body(content: Content) -> some View {
-            content.listStyle(SidebarListStyle())
-        }
-        #elseif os(iOS)
-        @ViewBuilder public func body(content: Content) -> some View {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                content.listStyle(SidebarListStyle())
-            } else {
-                content.listStyle(InsetGroupedListStyle())
-            }
-        }
-        #else
-        public func body(content: Content) -> some View {
-            content
-        }
-        #endif
+    public enum SizeClassValue: Int, Hashable, Codable {
+        case compact, regular
+    }
+    
+    public init() {}
+
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontal
+    @Environment(\.verticalSizeClass) private var vertical
+    
+    public var wrappedValue: Value {
+        .init(
+            horizontal: self.horizontal == .compact ? .compact : .regular,
+            vertical: self.vertical == .compact ? .compact : .regular
+        )
+    }
+    #elseif os(watchOS)
+    public var wrappedValue: Value {
+        .init(horizontal: .compact, vertical: .compact)
+    }
+    #else
+    public var wrappedValue: Value {
+        .init(horizontal: .regular, vertical: .regular)
+    }
+    #endif
+}
+
+extension View {
+    /// Performs onChange but also performs on initial load via `.task` modifier
+    public func onLoadChange<T: Equatable>(of change: T, perform: @escaping (T) -> Void) -> some View {
+        self.onChange(of: change, perform: perform)
+            .task { perform(change) }
+        
     }
 }
