@@ -26,28 +26,24 @@
 
 import Foundation
 
-public struct GenericError: UserFacingError {
-    public var errorCode: Int
-    public var errorUserInfo: [String : Any]
-    public var message: String
-    public var options: [RecoveryOption]
+public struct CodableError: Codable, CustomNSError {
     
-    public init(errorCode: Int,
-                errorUserInfo: [String : Any] = [:],
-                message: String,
-                options: [RecoveryOption] = [])
+    public var errorCode: Int
+    public var errorDomain: String
+    public var errorUserInfo: [String: String]
+    
+    public init(domain: String,
+                code: Int,
+                userInfo: [String:String] = [:])
     {
-        self.errorCode = errorCode
-        self.errorUserInfo = errorUserInfo
-        self.message = message
-        self.options = options
+        self.errorCode = code
+        self.errorDomain = domain
+        self.errorUserInfo = userInfo
     }
     
-    public init(_ error: NSError, options: [RecoveryOption] = []) {
+    public init(_ error: NSError) {
         self.errorCode = error.code
-        self.errorUserInfo = error.userInfo
-        // TODO: Add support for localizedFailureReason
-        self.message = .init(error.localizedDescription)
-        self.options = options
+        self.errorDomain = error.domain
+        self.errorUserInfo = error.userInfo.mapValues { String(describing: $0) }
     }
 }

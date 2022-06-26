@@ -32,7 +32,7 @@ import Collections
 /// Note, this class is not tested because there are too many custom types from WebKit.
 public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     
-    public enum Error: UserFacingError {
+    public enum Error: CustomNSError {
         case invalidURL(URL)
         
         public var errorCode: Int {
@@ -49,13 +49,13 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
     
-    public typealias OnError = (UserFacingError) -> Void
+    public typealias OnError = (Swift.Error) -> Void
     
     // TODO: This needs to be a reference type
-    public var errors: Deque<UFError>
+    public var errors: Deque<Swift.Error>
     public var onError: OnError?
     
-    public init(_ errors: Deque<UFError>, onError: OnError? = nil) {
+    public init(_ errors: Deque<Swift.Error>, onError: OnError? = nil) {
         self.errors = errors
         self.onError = onError
     }
@@ -83,7 +83,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         didFail navigation: WKNavigation!,
                         withError error: Swift.Error)
     {
-        let localizedError = GenericError(error as NSError)
+        let localizedError = CodableError(error as NSError)
         self.errors.append(localizedError)
         self.onError?(localizedError)
     }
@@ -92,7 +92,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         didFailProvisionalNavigation navigation: WKNavigation!,
                         withError error: Swift.Error)
     {
-        let localizedError = GenericError(error as NSError)
+        let localizedError = CodableError(error as NSError)
         self.errors.append(localizedError)
         self.onError?(localizedError)
     }

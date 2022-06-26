@@ -37,7 +37,7 @@ import Collections
 @available(iOS 14.0, OSX 11.0, *)
 public class CloudKitContainerContinuousProgress: ContinousProgress {
     
-    public enum Error: UserFacingError {
+    public enum Error: CustomNSError {
         case accountStatusCritical(NSError)
         case accountStatus(CKAccountStatus)
         case sync(NSError)
@@ -63,9 +63,9 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
         }
     }
     
-    public var initializeError: UserFacingError?
+    public var initializeError: Swift.Error?
     public let progress: Progress
-    public var errors: Deque<UFError> = .init()
+    public var errors: Deque<Swift.Error> = .init()
     
     private let syncName = NSPersistentCloudKitContainer.eventChangedNotification
     private let accountName = Notification.Name.CKAccountChanged

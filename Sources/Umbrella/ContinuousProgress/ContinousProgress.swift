@@ -36,26 +36,26 @@ import Collections
 public protocol ContinousProgress: ObservableObject {
     /// Fixed error that only occurs on startup and doesn't change
     /// for the lifetime of the process.
-    var initializeError: UserFacingError? { get }
+    var initializeError: Swift.Error? { get }
     var progress: Progress { get }
     /// When an error occurs, append it to the Queue.
-    var errors: Deque<UFError> { get set }
+    var errors: Deque<Swift.Error> { get set }
 }
 
 public class AnyContinousProgress: ContinousProgress {
     
     public let objectWillChange: ObservableObjectPublisher
-    public var initializeError: UserFacingError? { _initializeError() }
+    public var initializeError: Swift.Error? { _initializeError() }
     public var progress: Progress { _progress() }
-    public var errors: Deque<UFError> {
+    public var errors: Deque<Swift.Error> {
         get { _errors_get() }
         set { _errors_set(newValue) }
     }
     
-    private var _initializeError: () -> UserFacingError?
+    private var _initializeError: () -> Swift.Error?
     private var _progress: () -> Progress
-    private var _errors_get: () -> Deque<UFError>
-    private var _errors_set: (Deque<UFError>) -> Void
+    private var _errors_get: () -> Deque<Swift.Error>
+    private var _errors_set: (Deque<Swift.Error>) -> Void
     
     public init<T: ContinousProgress>(_ progress: T) where T.ObjectWillChangePublisher == ObservableObjectPublisher {
         self.objectWillChange = progress.objectWillChange
@@ -68,8 +68,8 @@ public class AnyContinousProgress: ContinousProgress {
 
 /// Use when you have no progress to report
 public class NoContinousProgress: ContinousProgress {
-    public let initializeError: UserFacingError? = nil
+    public let initializeError: Swift.Error? = nil
     public let progress: Progress = .init()
-    public var errors: Deque<UFError> = .init()
+    public var errors: Deque<Swift.Error> = .init()
     public init() {}
 }
