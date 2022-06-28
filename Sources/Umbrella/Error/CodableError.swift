@@ -26,9 +26,9 @@
 
 import Foundation
 
-public struct CodableError: Codable, CustomNSError, Identifiable {
+public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
     
-    public var id: String { self.errorDomain + "::" + String(describing: self.errorCode) }
+    public var id: UUID = .init()
     public var errorCode: Int
     public var errorDomain: String
     public var errorUserInfo: [String: String]
