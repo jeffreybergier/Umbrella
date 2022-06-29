@@ -30,10 +30,10 @@ public typealias UFError = UserFacingError
 
 public protocol UserFacingError: CustomNSError {
     /// Default implementation is "Error"
-    var title: LocalizedString { get }
-    var message: LocalizedString { get }
+    var title: LocalizationKey { get }
+    var message: LocalizationKey { get }
     /// Default implementation is "Dismiss"
-    var dismissTitle: LocalizedString { get }
+    var dismissTitle: LocalizationKey { get }
     var isCritical: Bool { get }
     /// Default implementation is empty.
     /// If options are present the Alert/UI for the error should show the options
@@ -42,10 +42,10 @@ public protocol UserFacingError: CustomNSError {
 
 public struct RecoveryOption: Identifiable {
     public var id = Int.random(in: 0..<Int.max)
-    public var title: LocalizedString
+    public var title: LocalizationKey
     public var isDestructive: Bool
     public var perform: () -> Void
-    public init(title: LocalizedString,
+    public init(title: LocalizationKey,
                 isDestructive: Bool = false,
                 perform: @escaping () -> Void)
     {
