@@ -28,24 +28,30 @@ import SwiftUI
 
 public typealias UFEAlert = UserFacingErrorAlert
 
-public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol>: ViewModifier {
+public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol, E: Error>: ViewModifier {
     
-    /// See EnvironmentBundle file for information
-    public enum Configuration<T: EnvironmentBundleProtocol> {
-        case mainBundle, environmentBundle(EnvironmentBundle<T>)
-    }
-    
-    @Binding private var error: UserFacingError?
-    private let dismissAction: ((UserFacingError) -> Void)?
+    @Binding private var error: E?
+    private let transform: (E) -> UserFacingError
+    private let dismissAction: ((E) -> Void)?
     
     @EnvironmentBundle<B> private var bundle
     
-    public init(_ error: Binding<UserFacingError?>,
-                dismissAction: ((UserFacingError) -> Void)? = nil)
+    public init(_ error: Binding<E?>,
+                dismissAction: ((E) -> Void)? = nil,
+                transform: @escaping (E) -> UserFacingError)
     {
         _error = error
+        self.transform = transform
         self.dismissAction = dismissAction
     }
+    
+    // TODO: Fix so that if E is already user facing error I have a convenient init
+//    public init(_ error: Binding<UserFacingError?>,
+//                dismissAction: ((UserFacingError) -> Void)? = nil)
+//    {
+//        _error = error
+//        self.dismissAction = dismissAction
+//    }
     
     public func body(content: Content) -> some View {
         content.modifier(self.render())
@@ -56,12 +62,22 @@ public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol>: ViewModifier {
         return self.bundle.localized(key: key)
     }
     
+    private func ufe(_ input: E?) -> UserFacingError? {
+        guard let input else { return nil }
+        return self.transform(input)
+    }
+    
+    // TODO: Cache this result from the transform?
+    private func ufe(_ input: E) -> UserFacingError {
+        self.transform(input)
+    }
+    
     private func render() -> some ViewModifier {
         JSBAlert(item: self.$error,
-                 titleKey: self.sc(self.error?.title ?? ""),
-                 message: { Text(self.sc($0.message)) })
+                 titleKey: self.sc(self.ufe(self.error)?.title ?? ""),
+                 message: { Text(self.sc(self.ufe($0).message)) })
         { error in
-            ForEach(error.options) { option in
+            ForEach(self.ufe(error).options) { option in
                 if option.isDestructive {
                     Button(self.sc(option.title), role: .destructive) {
                         option.perform()
@@ -74,7 +90,7 @@ public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol>: ViewModifier {
                     }
                 }
             }
-            Button(self.sc(error.dismissTitle), role: .cancel) {
+            Button(self.sc(self.ufe(error).dismissTitle), role: .cancel) {
                 self.dismissAction?(error)
             }
         }
