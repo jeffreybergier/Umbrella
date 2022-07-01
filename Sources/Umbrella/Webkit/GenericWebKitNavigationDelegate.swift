@@ -29,34 +29,12 @@ import WebKit
 import Collections
 
 /// Provides a basic WKNavigationDelegate with expected behavior for showing simple web views.
-/// Note, this class is not tested because there are too many custom types from WebKit.
 public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
-    
-    public enum Error: CustomNSError {
-        case invalidURL(URL)
-        
-        public var errorCode: Int {
-            switch self {
-            case .invalidURL:
-                return 1001
-            }
-        }
-        public var message: String {
-            switch self {
-            case .invalidURL(let url):
-                return "Phrase.ErrorInvalidURL\(url.absoluteString)"
-            }
-        }
-    }
-    
+
     public typealias OnError = (Swift.Error) -> Void
-    
-    // TODO: This needs to be a reference type
-    public var errors: Deque<Swift.Error>
     public var onError: OnError?
     
-    public init(_ errors: Deque<Swift.Error>, onError: OnError? = nil) {
-        self.errors = errors
+    public init(onError: OnError? = nil) {
         self.onError = onError
     }
     
@@ -71,9 +49,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
             comp.scheme == "http" || comp.scheme == "https" || comp.scheme == "about"
         else {
             decisionHandler(.cancel, preferences)
-            let localizedError = Error.invalidURL(url)
-            self.errors.append(localizedError)
-            self.onError?(localizedError)
+            NSLog("InvalidURL: \(url)")
             return
         }
         decisionHandler(.allow, preferences)
@@ -84,7 +60,6 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         withError error: Swift.Error)
     {
         let localizedError = CodableError(error as NSError)
-        self.errors.append(localizedError)
         self.onError?(localizedError)
     }
     
@@ -93,7 +68,6 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         withError error: Swift.Error)
     {
         let localizedError = CodableError(error as NSError)
-        self.errors.append(localizedError)
         self.onError?(localizedError)
     }
 }
