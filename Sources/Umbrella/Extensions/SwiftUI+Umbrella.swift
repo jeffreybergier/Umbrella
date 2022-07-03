@@ -90,3 +90,14 @@ extension View {
             }
     }
 }
+
+extension Binding {
+    public func map<T>(get: @escaping (Value) -> T, set: @escaping (T) -> Value) -> Binding<T> {
+        .init {
+            get(self.wrappedValue)
+        } set: {
+            self.wrappedValue = set($0)
+        }
+    }
+}
+
