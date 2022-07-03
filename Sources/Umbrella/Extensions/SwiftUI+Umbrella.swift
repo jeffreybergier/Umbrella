@@ -106,6 +106,12 @@ extension Binding {
     }
 }
 
+extension Binding where Value == Optional<URL> {
+    public var mapString: Binding<String?> {
+        self.map(get: { $0?.absoluteString }, set: { URL(string: $0 ?? "") })
+    }
+}
+
 extension Image {
     public init?(data: Data?) {
         guard let data else { return nil }
@@ -116,5 +122,18 @@ extension Image {
         guard let image = NSImage(data: data) else { return nil }
         self.init(nsImage: image)
         #endif
+    }
+    
+    public init(jsbImage image: JSBImage) {
+        #if canImport(UIKit)
+        self.init(uiImage: image)
+        #else
+        self.init(nsImage: image)
+        #endif
+    }
+    
+    public init?(jsbImage image: JSBImage?) {
+        guard let image else { return nil }
+        self.init(jsbImage: image)
     }
 }

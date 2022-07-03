@@ -33,3 +33,10 @@ extension StringProtocol {
         return trimmed.isEmpty ? nil : trimmed
     }
 }
+
+#if canImport(UIKit)
+import UIKit
+public typealias JSBImage = UIImage
+#else
+public typealias JSBImage = NSImage
+#endif
