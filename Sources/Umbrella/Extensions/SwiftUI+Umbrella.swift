@@ -25,6 +25,11 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
+#endif
 
 /// Cross-platform property wrapper for EditMode
 @propertyWrapper
@@ -101,3 +106,15 @@ extension Binding {
     }
 }
 
+extension Image {
+    public init?(data: Data?) {
+        guard let data else { return nil }
+        #if canImport(UIKit)
+        guard let image = UIImage(data: data) else { return nil }
+        self.init(uiImage: image)
+        #else
+        guard let image = NSImage(data: data) else { return nil }
+        self.init(nsImage: image)
+        #endif
+    }
+}
