@@ -96,22 +96,6 @@ extension View {
     }
 }
 
-extension Binding {
-    public func map<T>(get: @escaping (Value) -> T, set: @escaping (T) -> Value) -> Binding<T> {
-        .init {
-            get(self.wrappedValue)
-        } set: {
-            self.wrappedValue = set($0)
-        }
-    }
-}
-
-extension Binding where Value == Optional<URL> {
-    public var mapString: Binding<String?> {
-        self.map(get: { $0?.absoluteString }, set: { URL(string: $0 ?? "") })
-    }
-}
-
 extension Image {
     public init?(data: Data?) {
         guard let data else { return nil }
