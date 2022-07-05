@@ -36,12 +36,18 @@ extension Binding {
     }
 }
 
+extension Binding {
+    public func compactMap<T>(`default`: T) -> Binding<T> where Value == Optional<T> {
+        self.map(get: { $0 ?? `default` }, set: { $0 })
+    }
+}
+
 extension Binding where Value == Optional<URL> {
     public func mapString(default defaultValue: String = "") -> Binding<String> {
         self.map(get: { $0?.absoluteString ?? defaultValue }, set: { URL(string: $0) })
     }
-    public func compactMap(default defaultValue: URL = URL(string: "about:blank")!) -> Binding<URL> {
-        self.map(get: { $0 ?? defaultValue }, set: { $0 })
+    public func compactMap() -> Binding<URL> {
+        self.map(get: { $0 ?? URL(string: "about:blank")! }, set: { $0 })
     }
 }
 
@@ -52,20 +58,20 @@ extension Binding where Value == URL {
 }
 
 extension Binding where Value == Optional<String> {
-    public func compactMap(default defaultValue: String = "") -> Binding<String> {
-        self.map(get: { $0 ?? defaultValue }, set: { $0 })
+    public func compactMap() -> Binding<String> {
+        self.map(get: { $0 ?? "" }, set: { $0 })
     }
 }
 
 extension Binding where Value == Optional<Int> {
-    public func compactMap(default defaultValue: Int = 0) -> Binding<Int> {
-        self.map(get: { $0 ?? defaultValue }, set: { $0 })
+    public func compactMap() -> Binding<Int> {
+        self.map(get: { $0 ?? 0 }, set: { $0 })
     }
 }
 
 extension Binding where Value == Optional<Double> {
-    public func compactMap(default defaultValue: Double = 0) -> Binding<Double> {
-        self.map(get: { $0 ?? defaultValue }, set: { $0 })
+    public func compactMap() -> Binding<Double> {
+        self.map(get: { $0 ?? 0 }, set: { $0 })
     }
 }
 
@@ -76,7 +82,7 @@ extension Binding where Value == Bool {
 }
 
 extension Binding where Value == Optional<Bool> {
-    public func compactMap(default defaultValue: Bool = false) -> Binding<Bool> {
-        self.map(get: { $0 ?? defaultValue }, set: { $0 })
+    public func compactMap() -> Binding<Bool> {
+        self.map(get: { $0 ?? false }, set: { $0 })
     }
 }
