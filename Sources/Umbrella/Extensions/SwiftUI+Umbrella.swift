@@ -33,14 +33,14 @@ import AppKit
 
 /// Cross-platform property wrapper for EditMode
 @propertyWrapper
-public struct EditMode: DynamicProperty {
+public struct JSBEditMode: DynamicProperty {
     
     public init() {}
 
     #if !os(macOS)
     @Environment(\.editMode) private var editMode
     public var wrappedValue: Bool {
-        get { self.editMode?.wrappedValue == .active }
+        get { self.editMode?.wrappedValue.isEditing ?? false }
         nonmutating set {
             self.editMode?.wrappedValue = newValue ? .active : .inactive
         }
@@ -52,7 +52,7 @@ public struct EditMode: DynamicProperty {
 
 /// Cross-platform property wrapper for SizeClass
 @propertyWrapper
-public struct SizeClass: DynamicProperty {
+public struct JSBSizeClass: DynamicProperty {
     
     public struct Value {
         public var horizontal: SizeClassValue
