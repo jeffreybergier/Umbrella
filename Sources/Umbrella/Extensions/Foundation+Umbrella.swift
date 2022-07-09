@@ -38,5 +38,6 @@ extension StringProtocol {
 import UIKit
 public typealias JSBImage = UIImage
 #else
+import AppKit
 public typealias JSBImage = NSImage
 #endif

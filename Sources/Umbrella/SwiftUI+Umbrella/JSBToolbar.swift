@@ -94,9 +94,7 @@ public struct JSBToolbar: ViewModifier {
                     self.cancellationAction
                 }
             }
-#if !os(macOS)
-    .navigationBarTitleDisplayMode(.inline) // TODO: Improve this
-#endif
+            .navigationBarTitleDisplayModeInline
     }
     
     @ViewBuilder private var cancellationAction: some View {

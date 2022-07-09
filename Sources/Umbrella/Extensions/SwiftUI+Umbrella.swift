@@ -31,6 +31,16 @@ import UIKit
 import AppKit
 #endif
 
+extension View {
+    public var navigationBarTitleDisplayModeInline: some View {
+        #if os(macOS)
+        self
+        #else
+        self.navigationBarTitleDisplayMode(.inline)
+        #endif
+    }
+}
+
 /// Cross-platform property wrapper for EditMode
 @propertyWrapper
 public struct JSBEditMode: DynamicProperty {
