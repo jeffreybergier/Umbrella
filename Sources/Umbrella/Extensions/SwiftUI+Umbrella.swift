@@ -39,6 +39,13 @@ extension View {
         self.navigationBarTitleDisplayMode(.inline)
         #endif
     }
+    public var textContentTypeURL: some View {
+        #if os(macOS)
+        self
+        #else
+        self.textContentType(.URL)
+        #endif
+    }
 }
 
 /// Cross-platform property wrapper for EditMode
