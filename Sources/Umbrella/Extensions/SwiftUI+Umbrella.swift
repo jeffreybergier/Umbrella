@@ -46,6 +46,13 @@ extension View {
         self.textContentType(.URL)
         #endif
     }
+    public func editMode(force: Bool) -> some View {
+        #if os(macOS)
+        self
+        #else
+        self.environment(\.editMode, .constant(force ? .active : .inactive))
+        #endif
+    }
 }
 
 /// Cross-platform property wrapper for EditMode
