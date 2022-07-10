@@ -53,6 +53,17 @@ extension View {
         self.environment(\.editMode, .constant(force ? .active : .inactive))
         #endif
     }
+    public func sheetCover<T: Identifiable>(item: Binding<T?>,
+                                              @ViewBuilder content: @escaping (T) -> some View,
+                                              onDismiss: (() -> Void)? = nil)
+                                              -> some View
+    {
+        #if os(macOS)
+        self.sheet(item: item, onDismiss: onDismiss, content: content)
+        #else
+        self.fullScreenCover(item: item, onDismiss: onDismiss, content: content)
+        #endif
+    }
 }
 
 /// Cross-platform property wrapper for EditMode
