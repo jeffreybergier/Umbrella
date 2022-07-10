@@ -86,3 +86,14 @@ extension Binding where Value == Optional<Bool> {
         self.map(get: { $0 ?? false }, set: { $0 })
     }
 }
+
+extension Binding where Value: Collection & ExpressibleByArrayLiteral {
+    public var isPresented: Binding<Bool> {
+        return Binding<Bool> {
+            !self.wrappedValue.isEmpty
+        } set: {
+            guard $0 == false else { return }
+            self.wrappedValue = []
+        }
+    }
+}
