@@ -29,34 +29,35 @@ import SwiftUI
 @propertyWrapper
 public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
     
+    public typealias OnError = (E) -> Void
     public typealias ReadTransform = (In) -> Out
     public typealias WriteTransform = (In?, Out?) -> Result<Void, E>
-    
-    private let objectIDURL: URL
-    public let onRead: ReadTransform
-    
-    @EnvironmentQueue<E> private var errorQ
+        
     @Environment(\.managedObjectContext) private var context
     
-    @StateObject public var object: NilBox<In> = .init()
-    @StateObject public var onWrite: BlackBox<WriteTransform?>
-    @StateObject private var needsUpdate = BlackBox(true, isObservingValue: false)
-    
-    public init(objectIDURL: URL,
+    private let onRead: ReadTransform
+    @StateObject private var object      = NilBox<In>()
+    @StateObject private var onWrite    : BlackBox<WriteTransform?>
+    @StateObject private var onError    : BlackBox<OnError?>
+    @StateObject private var objectIDURL: BlackBox<URL?>
+        
+    public init(objectIDURL: URL? = nil,
+                onError: OnError? = nil,
                 onWrite: WriteTransform? = nil,
                 onRead: @escaping ReadTransform)
     {
-        self.objectIDURL = objectIDURL
-        self.onRead = onRead
-        _onWrite = .init(wrappedValue: BlackBox(onWrite, isObservingValue: false))
+        self.onRead  = onRead
+        _onWrite     = .init(wrappedValue: .init(onWrite, isObservingValue: false))
+        _onError     = .init(wrappedValue: .init(onError, isObservingValue: false))
+        _objectIDURL = .init(wrappedValue: .init(objectIDURL, isObservingValue: true))
     }
     
     public mutating func update() {
-        guard self.needsUpdate.value else { return }
-        self.needsUpdate.value = false
+        guard let url = self.objectIDURL.value else { return }
+        self.objectIDURL.value = nil
         guard
             let psc = self.context.persistentStoreCoordinator,
-            let id = psc.managedObjectID(forURIRepresentation: self.objectIDURL),
+            let id = psc.managedObjectID(forURIRepresentation: url),
             let object = self.context.object(with: id) as? In
         else {
             // TODO: Create error here
@@ -79,12 +80,25 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
         }
     }
     
+    public func setOnWrite(_ newValue: WriteTransform?) {
+        self.onWrite.value = newValue
+    }
+    
+    public func setOnError(_ newValue: OnError?) {
+        self.onError.value = newValue
+    }
+    
+    public func setObjectIDURL(_ newValue: URL?) {
+        self.object.value = nil
+        self.objectIDURL.value = newValue
+    }
+    
     private func write(newValue: Out?) {
         guard let onWrite = self.onWrite.value else {
             assertionFailure("Attempted to write value, but no write closure was given")
             return
         }
         guard let error = onWrite(self.object.value, newValue).error else { return }
-        self.errorQ = error
+        self.onError.value?(error)
     }
 }
