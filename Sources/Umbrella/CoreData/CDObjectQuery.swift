@@ -36,9 +36,9 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     @Environment(\.managedObjectContext) private var context
     
     private let onRead: ReadTransform
-    @StateObject private var object      = NilBox<In>()
-    @StateObject private var onWrite    : BlackBox<WriteTransform?>
-    @StateObject private var onError    : BlackBox<OnError?>
+    @StateObject private var object = NilBox<In>()
+    @StateObject private var onWrite: BlackBox<WriteTransform?>
+    @StateObject private var onError: BlackBox<OnError?>
     @StateObject private var objectIDURL: BlackBox<URL?>
         
     public init(objectIDURL: URL? = nil,

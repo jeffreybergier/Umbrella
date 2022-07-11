@@ -29,37 +29,39 @@ import SwiftUI
 @propertyWrapper
 public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
     
+    public typealias OnError = (E) -> Void
     public typealias ReadTransform = (In) -> Out
     public typealias WriteTransform = (In, Out) -> Result<Void, E>
     
-    public let onRead: ReadTransform
-    @StateObject public var onWrite: BlackBox<WriteTransform?>
+    private let onRead: ReadTransform
+    @StateObject private var onWrite: BlackBox<WriteTransform?>
+    @StateObject private var onError: BlackBox<OnError?>
     
-    @EnvironmentQueue<E> private var errorQ
     @FetchRequest public var request: FetchedResults<In>
 
-    public init(sort: [NSSortDescriptor] = [],
+    public init(sort:      [SortDescriptor<In>] = [],
                 predicate: NSPredicate? = nil,
-                animation: Animation? = nil,
-                onWrite: WriteTransform? = nil,
-                onRead: @escaping ReadTransform)
+                animation: Animation? = .default,
+                onError:   OnError? = nil,
+                onWrite:   WriteTransform? = nil,
+                onRead:    @escaping ReadTransform)
     {
-        _request = .init(entity: In.entity(),
-                         sortDescriptors: sort,
-                         predicate: predicate,
-                         animation: animation)
-        self.onRead = onRead
-        _onWrite = .init(wrappedValue: BlackBox(onWrite, isObservingValue: false))
+        self.onRead  = onRead
+        _onWrite     = .init(wrappedValue: .init(onWrite, isObservingValue: false))
+        _onError     = .init(wrappedValue: .init(onError, isObservingValue: false))
+        _request     = .init(entity: In.entity(),
+                             sortDescriptors: sort.map { NSSortDescriptor($0) },
+                             predicate: predicate,
+                             animation: animation)
     }
     
-    public var wrappedValue: AnyRandomAccessCollection<Out> {
+    public var wrappedValue: some RandomAccessCollection<Out> {
         TransformCollection(collection: self.request) { cd in
             self.onRead(cd)
         }
-        .eraseToAnyRandomAccessCollection()
     }
     
-    public var projectedValue: AnyRandomAccessCollection<Binding<Out>> {
+    public var projectedValue: some RandomAccessCollection<Binding<Out>> {
         TransformCollection(collection: self.request) { cd in
             Binding {
                 self.onRead(cd)
@@ -69,10 +71,25 @@ public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
                     return
                 }
                 guard let error = onWrite(cd, newValue).error else { return }
-                self.errorQ = error
+                self.onError.value?(error)
             }
         }
-        .eraseToAnyRandomAccessCollection()
+    }
+    
+    public func setOnWrite(_ newValue: WriteTransform?) {
+        self.onWrite.value = newValue
+    }
+    
+    public func setOnError(_ newValue: OnError?) {
+        self.onError.value = newValue
+    }
+    
+    public func setPredicate(_ newValue: NSPredicate?) {
+        self.request.nsPredicate = newValue
+    }
+    
+    public func setSortDescriptors(_ newValue: [SortDescriptor<In>] = []) {
+        self.request.sortDescriptors = newValue
     }
     
 }
