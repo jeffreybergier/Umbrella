@@ -31,6 +31,8 @@ import UIKit
 import AppKit
 #endif
 
+// MARK: Crossplatform support
+
 extension View {
     public var navigationBarTitleDisplayModeInline: some View {
         #if os(macOS)
@@ -54,14 +56,25 @@ extension View {
         #endif
     }
     public func sheetCover<T: Identifiable>(item: Binding<T?>,
-                                              @ViewBuilder content: @escaping (T) -> some View,
-                                              onDismiss: (() -> Void)? = nil)
-                                              -> some View
+                                            onDismiss: (() -> Void)? = nil,
+                                            @ViewBuilder content: @escaping (T) -> some View)
+                                            -> some View
     {
         #if os(macOS)
         self.sheet(item: item, onDismiss: onDismiss, content: content)
         #else
         self.fullScreenCover(item: item, onDismiss: onDismiss, content: content)
+        #endif
+    }
+    public func sheetCover(isPresented: Binding<Bool>,
+                           onDismiss: (() -> Void)? = nil,
+                           @ViewBuilder content: @escaping () -> some View)
+                           -> some View
+    {
+        #if os(macOS)
+        self.sheet(isPresented: isPresented, onDismiss: onDismiss, content: content)
+        #else
+        self.fullScreenCover(isPresented: isPresented, onDismiss: onDismiss, content: content)
         #endif
     }
 }
@@ -121,16 +134,6 @@ public struct JSBSizeClass: DynamicProperty {
     #endif
 }
 
-extension View {
-    /// Performs onChange but also performs on initial load via `.task` modifier
-    public func onLoadChange<T: Equatable>(of change: T, perform: @escaping (T) -> Void) -> some View {
-        self.onChange(of: change, perform: perform)
-            .task {
-                DispatchQueue.main.async { perform(change) }
-            }
-    }
-}
-
 extension Image {
     public init?(data: Data?) {
         guard let data else { return nil }
@@ -154,5 +157,55 @@ extension Image {
     public init?(jsbImage image: JSBImage?) {
         guard let image else { return nil }
         self.init(jsbImage: image)
+    }
+}
+
+// MARK: Presentation Helpers
+
+extension View {
+    public func popover<C: Collection & ExpressibleByArrayLiteral, V: View>(
+        items: Binding<C>,
+        @ViewBuilder content: @escaping (C) -> V
+    ) -> some View
+    {
+        return self.popover(isPresented: items.isPresented) {
+            content(items.wrappedValue)
+        }
+    }
+    
+    public func sheet<C: Collection & ExpressibleByArrayLiteral, V: View>(
+        items: Binding<C>,
+        @ViewBuilder content: @escaping (C) -> V,
+        onDismiss: (() -> Void)? = nil
+    )
+    -> some View
+    {
+        return self.sheet(isPresented: items.isPresented, onDismiss: onDismiss) {
+            content(items.wrappedValue)
+        }
+    }
+    
+    public func sheetCover<C: Collection & ExpressibleByArrayLiteral, V: View>(
+        items: Binding<C>,
+        @ViewBuilder content: @escaping (C) -> V,
+        onDismiss: (() -> Void)? = nil
+    )
+    -> some View
+    {
+        return self.sheetCover(isPresented: items.isPresented, onDismiss: onDismiss) {
+            content(items.wrappedValue)
+        }
+    }
+}
+
+// MARK: State Management Helpers
+
+extension View {
+    /// Performs onChange but also performs on initial load via `.task` modifier
+    public func onLoadChange<T: Equatable>(of change: T, perform: @escaping (T) -> Void) -> some View {
+        self.onChange(of: change, perform: perform)
+            .task {
+                DispatchQueue.main.async { perform(change) }
+            }
     }
 }

@@ -38,7 +38,7 @@ extension Collection {
 
 extension Optional {
     public func view<Backup: View, Content: View>(
-        @ViewBuilder content: @escaping (Self) -> Content,
+        @ViewBuilder content: @escaping (Wrapped) -> Content,
         @ViewBuilder onNIL: @escaping () -> Backup
     ) -> some View
     {
