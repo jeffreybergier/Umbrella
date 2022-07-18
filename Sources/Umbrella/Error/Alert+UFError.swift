@@ -45,13 +45,14 @@ public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol, E: Error>: View
         self.dismissAction = dismissAction
     }
     
-    // TODO: Fix so that if E is already user facing error I have a convenient init
-//    public init(_ error: Binding<UserFacingError?>,
-//                dismissAction: ((UserFacingError) -> Void)? = nil)
-//    {
-//        _error = error
-//        self.dismissAction = dismissAction
-//    }
+    public init(_ error: Binding<E?>,
+                dismissAction: ((E) -> Void)? = nil)
+                where E: UserFacingError
+    {
+        _error = error
+        self.transform = { $0 }
+        self.dismissAction = dismissAction
+    }
     
     public func body(content: Content) -> some View {
         content.modifier(self.render())
@@ -67,7 +68,6 @@ public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol, E: Error>: View
         return self.transform(input)
     }
     
-    // TODO: Cache this result from the transform?
     private func ufe(_ input: E) -> UserFacingError {
         self.transform(input)
     }
