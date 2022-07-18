@@ -31,20 +31,20 @@ public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
     public var id: UUID = .init()
     public var errorCode: Int
     public var errorDomain: String
-    public var errorUserInfo: [String: String]
+    public var arbitraryData: Data?
     
     public init(domain: String,
                 code: Int,
-                userInfo: [String:String] = [:])
+                arbitraryData: Data? = nil)
     {
         self.errorCode = code
         self.errorDomain = domain
-        self.errorUserInfo = userInfo
+        self.arbitraryData = arbitraryData
     }
     
     public init(_ error: NSError) {
         self.errorCode = error.code
         self.errorDomain = error.domain
-        self.errorUserInfo = error.userInfo.mapValues { String(describing: $0) }
+        self.arbitraryData = String(describing: error.userInfo).data(using: .utf8)
     }
 }
