@@ -79,6 +79,23 @@ extension View {
     }
 }
 
+/// Cross-platform environment value for TintColor
+public struct EnvironmentTintColor: EnvironmentKey {
+    public static var defaultValue: Color = {
+        #if os(macOS)
+        Color(nsColor: NSColor.controlAccentColor)
+        #else
+        Color(uiColor: UIColor.tintColor)
+        #endif
+    }()
+}
+
+extension EnvironmentValues {
+    public var tintColor: Color {
+        self[EnvironmentTintColor.self]
+    }
+}
+
 /// Cross-platform property wrapper for EditMode
 @propertyWrapper
 public struct JSBEditMode: DynamicProperty {
