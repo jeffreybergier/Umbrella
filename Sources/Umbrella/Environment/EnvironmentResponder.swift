@@ -41,6 +41,17 @@ extension EnvironmentValues {
     }
 }
 
+public struct EnvironmentClosure: EnvironmentKey {
+    public static var defaultValue: (() -> Void)? = nil
+}
+
+extension EnvironmentValues {
+    public var closure: (() -> Void)? {
+        get { self[EnvironmentClosure.self] }
+        set { self[EnvironmentClosure.self] = newValue }
+    }
+}
+
 public struct EnvironmentResponderError: EnvironmentKey {
     public static var defaultValue: (Swift.Error) -> Void = { event in
         assertionFailure("No Responder: \(event)")
