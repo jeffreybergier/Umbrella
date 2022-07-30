@@ -86,7 +86,7 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
         let wait1 = DispatchSemaphore(value: 0)
         item.loadDataRepresentation(forTypeIdentifier: UTType.jpeg.identifier) { _data, error in
             if let error = error {
-                NSLog("\(error)")
+                NSLog(String(describing: error))
                 result = .failure(.format)
             } else if let data = _data {
                 result = .success(data)
@@ -100,7 +100,7 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
             let wait2 = DispatchSemaphore(value: 0)
             item.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { _data, error in
                 if let error = error {
-                    NSLog("\(error)")
+                    NSLog(String(describing: error))
                     result = .failure(.format)
                 } else if let data = _data {
                     result = .success(data)
