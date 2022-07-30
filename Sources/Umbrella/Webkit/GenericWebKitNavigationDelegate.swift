@@ -59,16 +59,14 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         didFail navigation: WKNavigation!,
                         withError error: Swift.Error)
     {
-        let localizedError = CodableError(error as NSError)
-        self.onError?(localizedError)
+        self.onError?(error)
     }
     
     public func webView(_ webView: WKWebView,
                         didFailProvisionalNavigation navigation: WKNavigation!,
                         withError error: Swift.Error)
     {
-        let localizedError = CodableError(error as NSError)
-        self.onError?(localizedError)
+        self.onError?(error)
     }
 }
 #endif

@@ -97,9 +97,8 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
             DispatchQueue.main.async {
                 self.objectWillChange.send()
                 if let error = error {
-                    NSLog("\(error)")
-                    let error = error as NSError
-                    self.initializeError = Error.accountStatusCritical(error)
+                    NSLog(String(describing: error))
+                    self.initializeError = Error.accountStatusCritical(error as NSError)
                     return
                 }
                 switch account {
@@ -121,9 +120,8 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
         DispatchQueue.main.async {
             self.objectWillChange.send()
             if let error = event.error {
-                NSLog("\(error)")
-                let error = error as NSError
-                self.errors.append(Error.sync(error))
+                NSLog(String(describing: error))
+                self.errors.append(Error.sync(error as NSError))
             }
             if self.io.contains(event.identifier) {
                 self.io.remove(event.identifier)

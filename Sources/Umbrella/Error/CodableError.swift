@@ -42,9 +42,14 @@ public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
         self.arbitraryData = arbitraryData
     }
     
+    public init(_ error: Swift.Error) {
+        assert(type(of: error) != CodableError.self)
+        self.init(error as NSError)
+    }
+    
     public init(_ error: NSError) {
         self.errorCode = error.code
         self.errorDomain = error.domain
-        self.arbitraryData = String(describing: error.userInfo).data(using: .utf8)
+        self.arbitraryData = String(describing: error).data(using: .utf8)
     }
 }
