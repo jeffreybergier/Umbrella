@@ -63,7 +63,6 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
         }
     }
     
-    public var initializeError: Swift.Error?
     public let progress: Progress
     public var errors: Deque<Swift.Error> = .init()
     
@@ -98,16 +97,16 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
                 self.objectWillChange.send()
                 if let error = error {
                     NSLog(String(describing: error))
-                    self.initializeError = Error.accountStatusCritical(error as NSError)
+                    self.errors.append(Error.accountStatusCritical(error as NSError))
                     return
                 }
                 switch account {
                 case .available:
-                    self.initializeError = nil
+                    break
                 case .couldNotDetermine, .restricted, .noAccount, .temporarilyUnavailable:
                     fallthrough
                 @unknown default:
-                    self.initializeError = Error.accountStatus(account)
+                    self.errors.append(Error.accountStatus(account))
                 }
             }
         }

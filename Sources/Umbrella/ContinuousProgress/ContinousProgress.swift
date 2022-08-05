@@ -34,9 +34,6 @@ import Collections
 /// many types of long-running / background processes.
 /// Use `AnyContinousProgress` to get around AssociatedType compile errors.
 public protocol ContinousProgress: ObservableObject {
-    /// Fixed error that only occurs on startup and doesn't change
-    /// for the lifetime of the process.
-    var initializeError: Swift.Error? { get }
     var progress: Progress { get }
     /// When an error occurs, append it to the Queue.
     var errors: Deque<Swift.Error> { get set }
@@ -45,21 +42,20 @@ public protocol ContinousProgress: ObservableObject {
 public class AnyContinousProgress: ContinousProgress {
     
     public let objectWillChange: ObservableObjectPublisher
-    public var initializeError: Swift.Error? { _initializeError() }
     public var progress: Progress { _progress() }
     public var errors: Deque<Swift.Error> {
         get { _errors_get() }
         set { _errors_set(newValue) }
     }
     
-    private var _initializeError: () -> Swift.Error?
     private var _progress: () -> Progress
     private var _errors_get: () -> Deque<Swift.Error>
     private var _errors_set: (Deque<Swift.Error>) -> Void
     
-    public init<T: ContinousProgress>(_ progress: T) where T.ObjectWillChangePublisher == ObservableObjectPublisher {
+    public init<T: ContinousProgress>(_ progress: T)
+          where T.ObjectWillChangePublisher == ObservableObjectPublisher
+     {
         self.objectWillChange = progress.objectWillChange
-        _initializeError      = { progress.initializeError }
         _progress             = { progress.progress }
         _errors_get           = { progress.errors }
         _errors_set           = { progress.errors = $0 }
