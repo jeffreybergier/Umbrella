@@ -35,36 +35,10 @@ import Collections
 /// Shows continuous progress of CloudKit syncing via NSPersistentCloudKitContainer.
 /// Note, this class is not tested because it relies on NSNotificationCenter and other singletons.
 @available(iOS 14.0, OSX 11.0, *)
-public class CloudKitContainerContinuousProgress: ContinousProgress {
-    
-    public enum Error: CustomNSError {
-        case accountStatusCritical(NSError)
-        case accountStatus(CKAccountStatus)
-        case sync(NSError)
-        
-        public var errorCode: Int {
-            switch self {
-            case .accountStatusCritical:
-                return 1001
-            case .accountStatus:
-                return 1002
-            case .sync:
-                return 1003
-            }
-        }
-        public var title: String { "iCloud" }
-        public var message: String {
-            switch self {
-            case .accountStatus:
-                return "Phrase.ErroriCloudAccount"
-            case .accountStatusCritical(let error), .sync(let error):
-                return .init(error.localizedDescription)
-            }
-        }
-    }
+public class CloudKitContainerContinuousProgress: ContinousProgress {    
     
     public let progress: Progress
-    public var errors: Deque<Swift.Error> = .init()
+    public var errors: Deque<CPError> = .init()
     
     private let syncName = NSPersistentCloudKitContainer.eventChangedNotification
     private let accountName = Notification.Name.CKAccountChanged
@@ -97,7 +71,7 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
                 self.objectWillChange.send()
                 if let error = error {
                     NSLog(String(describing: error))
-                    self.errors.append(Error.accountStatusCritical(error as NSError))
+                    self.errors.append(Error.accountStatus(.couldNotDetermine))
                     return
                 }
                 switch account {
@@ -106,7 +80,7 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
                 case .couldNotDetermine, .restricted, .noAccount, .temporarilyUnavailable:
                     fallthrough
                 @unknown default:
-                    self.errors.append(Error.accountStatus(account))
+                    self.errors.append(Error.accountStatus(.init(account)))
                 }
             }
         }
@@ -135,5 +109,15 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
     deinit {
         NotificationCenter.default.removeObserver(self, name: self.syncName, object: nil)
         NotificationCenter.default.removeObserver(self, name: self.accountName, object: nil)
+    }
+}
+
+extension CPAccountStatus {
+    public init(_ system: CKAccountStatus) {
+        let attempt = CPAccountStatus(rawValue: system.rawValue)
+        self = attempt ?? .couldNotDetermine
+    }
+    public var systemValue: CKAccountStatus {
+        return CKAccountStatus(rawValue: self.rawValue) ?? .couldNotDetermine
     }
 }

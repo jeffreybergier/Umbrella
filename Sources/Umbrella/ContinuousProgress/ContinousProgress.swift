@@ -34,26 +34,45 @@ import Collections
 /// many types of long-running / background processes.
 /// Use `AnyContinousProgress` to get around AssociatedType compile errors.
 public protocol ContinousProgress: ObservableObject {
+    associatedtype Error: Swift.Error
     var progress: Progress { get }
     /// When an error occurs, append it to the Queue.
-    var errors: Deque<Swift.Error> { get set }
+    var errors: Deque<Error> { get set }
 }
 
-public class AnyContinousProgress: ContinousProgress {
+public enum CPError: CustomNSError {
+    case accountStatus(CPAccountStatus)
+    case sync(NSError?)
+    
+    public var errorCode: Int {
+        switch self {
+        case .accountStatus:
+            return 1001
+        case .sync:
+            return 1002
+        }
+    }
+    
+    public static var errorDomain: String {
+        "com.saturdayapps.Umbrella.ContinuousProgressError"
+    }
+}
+
+public class AnyContinousProgress<Error: Swift.Error>: ContinousProgress {
     
     public let objectWillChange: ObservableObjectPublisher
     public var progress: Progress { _progress() }
-    public var errors: Deque<Swift.Error> {
+    public var errors: Deque<Error> {
         get { _errors_get() }
         set { _errors_set(newValue) }
     }
     
     private var _progress: () -> Progress
-    private var _errors_get: () -> Deque<Swift.Error>
-    private var _errors_set: (Deque<Swift.Error>) -> Void
+    private var _errors_get: () -> Deque<Error>
+    private var _errors_set: (Deque<Error>) -> Void
     
-    public init<T: ContinousProgress>(_ progress: T)
-          where T.ObjectWillChangePublisher == ObservableObjectPublisher
+    public init<T: ContinousProgress>(_ progress: T) where T.Error == Error,
+                T.ObjectWillChangePublisher == ObservableObjectPublisher
      {
         self.objectWillChange = progress.objectWillChange
         _progress             = { progress.progress }
@@ -68,4 +87,12 @@ public class NoContinousProgress: ContinousProgress {
     public let progress: Progress = .init()
     public var errors: Deque<Swift.Error> = .init()
     public init() {}
+}
+
+public enum CPAccountStatus: Int {
+    case couldNotDetermine = 0
+    case available = 1
+    case restricted = 2
+    case noAccount = 3
+    case temporarilyUnavailable = 4
 }
