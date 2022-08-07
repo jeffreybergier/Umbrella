@@ -33,7 +33,7 @@ public enum Platform {
 extension View {
     @ViewBuilder public func `if`(
         _ platform: Platform,
-        _ modify: (Self) -> some View
+        modify: (Self) -> some View
     ) -> some View
     {
         if platform.boolValue {
@@ -45,7 +45,7 @@ extension View {
     
     @ViewBuilder public func `if`<Input>(
         _ item: Input?,
-        _ modify: (Self, Input) -> some View
+        modify: (Self, Input) -> some View
     ) -> some View
     {
         if let item = item {
@@ -57,7 +57,7 @@ extension View {
     
     @ViewBuilder public func `if`(
         _ bool: Bool,
-        _ modify: (Self) -> some View
+        modify: (Self) -> some View
     ) -> some View
     {
         if bool {
@@ -65,6 +65,24 @@ extension View {
         } else {
             self
         }
+    }
+    
+    @ViewBuilder public func `if`(
+        _ bool: Bool,
+        modify: (Self) -> some View,
+        else: (Self) -> some View
+    ) -> some View
+    {
+        if bool {
+            modify(self)
+        } else {
+            `else`(self)
+        }
+    }
+    
+    /// Lifts the current view into a closure so you can easily customize
+    public func lift(modify: (Self) -> some View) -> some View {
+        modify(self)
     }
 }
 
