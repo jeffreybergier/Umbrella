@@ -39,11 +39,11 @@ public typealias ErrorQueue = EnvironmentQueue<UserFacingError>
 @propertyWrapper
 public struct EnvironmentQueue<T>: DynamicProperty {
     
-    public typealias Environment = BlackBox<Collection>
+    public typealias Environment = ObserveBox<Collection>
     public typealias Collection = Deque<T>
     
     public static func newEnvirementObject() -> Environment {
-        return BlackBox(Deque<T>(), isObservingValue: true)
+        return ObserveBox(Deque<T>())
     }
     
     public static func legacyBinding(_ environment: Environment) -> Binding<T?> {

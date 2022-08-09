@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/03/08.
+//  Created by Jeffrey Bergier on 2022/08/09.
 //
 //  MIT License
 //
@@ -27,25 +27,19 @@
 import Combine
 import Foundation
 
-/// Takes an `ObservableObject` and puts it into an `ObservableObject` box.
-/// This is useful in the case where your SwiftUI.View needs to change the object its observing
-public class Box<Value: ObservableObject>: ObservableObject {
-    
-    public var value: Value {
-        willSet { self.objectWillChange.send() }
-        didSet { self.subscribe() }
-    }
-    
-    private var token: AnyCancellable?
-    
+/// Takes any value and puts it into a box that is `ObservableObject`.
+/// Does NOT fire `objectWillChange` signal when value is set.
+/// Also makes it `Identifiable` if the value is `Identifiable`.
+public class SecretBox<Value>: ObservableObject {
+    public var value: Value
     public init(_ value: Value) {
         self.value = value
-        self.subscribe()
-    }
-    
-    private func subscribe() {
-        self.token = self.value.objectWillChange.sink { [weak self] _ in
-            self?.objectWillChange.send()
-        }
     }
 }
+
+extension SecretBox: Identifiable where Value: Identifiable {
+    public var id: Value.ID {
+        return self.value.id
+    }
+}
+

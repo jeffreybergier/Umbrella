@@ -28,28 +28,22 @@ import Combine
 import Foundation
 
 /// Takes any value and puts it into a box that is `ObservableObject`.
-/// Also makes it `Identifiable` if the value is `Identifiable`
-public class BlackBox<Value>: ObservableObject {
-    public var isObservingValue: Bool
-    public let objectDidChange = ObservableObjectPublisher()
+/// DOES fire `objectWillChange` signal when value is set.
+/// Also makes it `Identifiable` if the value is `Identifiable`.
+public class ObserveBox<Value>: ObservableObject {
     public var value: Value {
         willSet {
-            guard self.isObservingValue else { return }
             self.objectWillChange.send()
         }
-        didSet {
-            guard self.isObservingValue else { return }
-            self.objectDidChange.send()
-        }
     }
-    public init(_ value: Value, isObservingValue: Bool = true) {
+    public init(_ value: Value) {
         self.value = value
-        self.isObservingValue = isObservingValue
     }
 }
 
-extension BlackBox: Identifiable where Value: Identifiable {
+extension ObserveBox: Identifiable where Value: Identifiable {
     public var id: Value.ID {
         return self.value.id
     }
 }
+

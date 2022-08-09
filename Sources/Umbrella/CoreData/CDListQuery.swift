@@ -34,8 +34,8 @@ public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
     public typealias WriteTransform = (In, Out) -> Result<Void, E>
     
     private let onRead: ReadTransform
-    @StateObject private var onWrite: BlackBox<WriteTransform?>
-    @StateObject private var onError: BlackBox<OnError?>
+    @StateObject private var onWrite: SecretBox<WriteTransform?>
+    @StateObject private var onError: SecretBox<OnError?>
     
     @FetchRequest public var request: FetchedResults<In>
 
@@ -47,8 +47,8 @@ public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
                 onRead:    @escaping ReadTransform)
     {
         self.onRead  = onRead
-        _onWrite     = .init(wrappedValue: .init(onWrite, isObservingValue: false))
-        _onError     = .init(wrappedValue: .init(onError, isObservingValue: false))
+        _onWrite     = .init(wrappedValue: .init(onWrite))
+        _onError     = .init(wrappedValue: .init(onError))
         _request     = .init(entity: In.entity(),
                              sortDescriptors: sort.map { NSSortDescriptor($0) },
                              predicate: predicate,

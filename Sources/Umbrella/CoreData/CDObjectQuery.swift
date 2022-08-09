@@ -37,8 +37,8 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     
     private let onRead: ReadTransform
     @StateObject private var object = NilBox<In>()
-    @StateObject private var onWrite: BlackBox<WriteTransform?>
-    @StateObject private var onError: BlackBox<OnError?>
+    @StateObject private var onWrite: SecretBox<WriteTransform?>
+    @StateObject private var onError: SecretBox<OnError?>
         
     public init(objectIDURL: URL? = nil,
                 onError: OnError? = nil,
@@ -46,8 +46,8 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
                 onRead: @escaping ReadTransform)
     {
         self.onRead  = onRead
-        _onWrite = .init(wrappedValue: .init(onWrite, isObservingValue: false))
-        _onError = .init(wrappedValue: .init(onError, isObservingValue: false))
+        _onWrite = .init(wrappedValue: .init(onWrite))
+        _onError = .init(wrappedValue: .init(onError))
     }
     
     public var wrappedValue: Out? {
