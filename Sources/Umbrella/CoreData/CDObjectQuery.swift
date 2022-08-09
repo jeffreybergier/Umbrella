@@ -39,7 +39,6 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     @StateObject private var object = NilBox<In>()
     @StateObject private var onWrite: BlackBox<WriteTransform?>
     @StateObject private var onError: BlackBox<OnError?>
-    @StateObject private var objectIDURL: BlackBox<URL?>
         
     public init(objectIDURL: URL? = nil,
                 onError: OnError? = nil,
@@ -47,23 +46,8 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
                 onRead: @escaping ReadTransform)
     {
         self.onRead  = onRead
-        _onWrite     = .init(wrappedValue: .init(onWrite, isObservingValue: false))
-        _onError     = .init(wrappedValue: .init(onError, isObservingValue: false))
-        _objectIDURL = .init(wrappedValue: .init(objectIDURL, isObservingValue: true))
-    }
-    
-    public mutating func update() {
-        guard let url = self.objectIDURL.value else { return }
-        self.objectIDURL.value = nil
-        guard
-            let psc = self.context.persistentStoreCoordinator,
-            let id = psc.managedObjectID(forURIRepresentation: url),
-            let object = self.context.object(with: id) as? In
-        else {
-            // TODO: Create error here
-            return
-        }
-        self.object.value = object
+        _onWrite = .init(wrappedValue: .init(onWrite, isObservingValue: false))
+        _onError = .init(wrappedValue: .init(onError, isObservingValue: false))
     }
     
     public var wrappedValue: Out? {
@@ -90,7 +74,16 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     
     public func setObjectIDURL(_ newValue: URL?) {
         self.object.value = nil
-        self.objectIDURL.value = newValue
+        guard
+            let url = newValue,
+            let psc = self.context.persistentStoreCoordinator,
+            let id = psc.managedObjectID(forURIRepresentation: url),
+            let object = self.context.object(with: id) as? In
+        else {
+            // TODO: Create error here
+            return
+        }
+        self.object.value = object
     }
     
     private func write(newValue: Out?) {
