@@ -64,14 +64,6 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
         }
     }
     
-    public func setOnWrite(_ newValue: WriteTransform?) {
-        self.onWrite.value = newValue
-    }
-    
-    public func setOnError(_ newValue: OnError?) {
-        self.onError.value = newValue
-    }
-    
     public func setObjectIDURL(_ newValue: URL?) {
         self.object.value = nil
         guard
@@ -93,5 +85,13 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
         }
         guard let error = onWrite(self.object.value, newValue).error else { return }
         self.onError.value?(error)
+    }
+    
+    public func setOnWrite(_ newValue: WriteTransform?) {
+        self.onWrite.value = newValue
+    }
+    
+    public func setOnError(_ newValue: OnError?) {
+        self.onError.value = newValue
     }
 }
