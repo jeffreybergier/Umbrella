@@ -40,9 +40,15 @@ public struct Action {
     
     /// Configure the text of the Action
     public struct Localization {
-        /// Gets set as the visible label and accessibility label
+        public enum Image {
+            case system(String)
+            case custom(SwiftUI.Image)
+        }
+        /// Image for the label
+        public var image: Image?
+        /// Visible label and accessibility label
         public var title: LocalizedString
-        /// Gets set as the accessibility hint
+        /// Accessibility hint
         public var hint: LocalizedString?
         public var shortcut: KeyboardShortcut?
     }
@@ -51,20 +57,13 @@ public struct Action {
         public enum Label {
             case automatic, label, icon, title
         }
-        public enum Image {
-            case system(String)
-            case custom(SwiftUI.Image)
-        }
-        public var image: Image
         public var style: Label
         public var button: ButtonRole?
         
         public init(style: Label = .automatic,
-                    image: Image,
                     button: ButtonRole? = nil)
         {
             self.style = style
-            self.image = image
             self.button = button
         }
     }
@@ -72,16 +71,31 @@ public struct Action {
 
 // MARK: Buttons
 extension Action {
-    public func button<C>(_ isEnabled: EnableItems<C>) -> some View {
-        let action: () -> Void = {
-            isEnabled.action(isEnabled.items)
-        }
-        return Button(action: action, label: self.raw_label)
-            .disabled(isEnabled.items.isEmpty)
+    
+    public func button(_ isEnabled: EnableBool) -> some View {
+        Button(action: isEnabled.action, label: self.raw_label)
+            .disabled(!isEnabled.isEnabled)
             .accessibilityLabel(self.localization.title)
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
             }
+    }
+    
+    public func button(isEnabled: Bool = true,
+                       action: @escaping () -> Void)
+                       -> some View
+    {
+        let isEnabled = EnableBool(isEnabled, action: action)
+        return self.button(isEnabled)
+    }
+    
+    public struct EnableBool {
+        public var isEnabled: Bool
+        public var action: () -> Void
+        public init(_ isEnabled: Bool = true, action: @escaping () -> Void) {
+            self.isEnabled = isEnabled
+            self.action = action
+        }
     }
     
     public func button<T>(_ isEnabled: EnableItem<T>) -> some View {
@@ -97,37 +111,47 @@ extension Action {
             }
     }
     
-    public func button(_ isEnabled: EnableBool) -> some View {
-        Button(action: isEnabled.action, label: self.raw_label)
-            .disabled(!isEnabled.isEnabled)
+    public func button<T>(item: T?,
+                          action: @escaping (T) -> Void)
+                          -> some View
+    {
+        let isEnabled = EnableItem(item, action: action)
+        return self.button(isEnabled)
+    }
+    
+    public struct EnableItem<T> {
+        public var item: T?
+        public var action: (T) -> Void
+        public init(_ item: T?, action: @escaping (T) -> Void) {
+            self.item = item
+            self.action = action
+        }
+    }
+    
+    public func button<C>(_ isEnabled: EnableItems<C>) -> some View {
+        let action: () -> Void = {
+            isEnabled.action(isEnabled.items)
+        }
+        return Button(action: action, label: self.raw_label)
+            .disabled(isEnabled.items.isEmpty)
             .accessibilityLabel(self.localization.title)
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
             }
     }
     
-    public struct EnableBool {
-        public var isEnabled: Bool
-        public var action: () -> Void
-        public init(isEnabled: Bool = true, action: @escaping () -> Void) {
-            self.isEnabled = isEnabled
-            self.action = action
-        }
-    }
-    
-    public struct EnableItem<T> {
-        public var item: T?
-        public var action: (T) -> Void
-        public init(item: T?, action: @escaping (T) -> Void) {
-            self.item = item
-            self.action = action
-        }
+    public func button<C: Collection>(items: C,
+                          action: @escaping (C) -> Void)
+                          -> some View
+    {
+        let isEnabled = EnableItems(items, action: action)
+        return self.button(isEnabled)
     }
     
     public struct EnableItems<C: Collection> {
         public var items: C
         public var action: (C) -> Void
-        public init(items: C, action: @escaping (C) -> Void) {
+        public init(_ items: C, action: @escaping (C) -> Void) {
             self.items = items
             self.action = action
         }
@@ -144,18 +168,22 @@ extension Action {
             }
     }
     
-    private func raw_label() -> some View {
-        return Label {
-            Text(self.localization.title)
-        } icon: {
-            switch self.style.image {
-            case .system(let image):
-                SwiftUI.Image(systemName: image)
-            case .custom(let image):
-                image
+    @ViewBuilder private func raw_label() -> some View {
+        if let image = self.localization.image {
+            Label {
+                Text(self.localization.title)
+            } icon: {
+                switch image {
+                case .system(let image):
+                    SwiftUI.Image(systemName: image)
+                case .custom(let image):
+                    image
+                }
             }
+            .modifier(LabelStyler(self.style.style))
+        } else {
+            Text(self.localization.title)
         }
-        .modifier(LabelStyler(self.style.style))
     }
 }
 
