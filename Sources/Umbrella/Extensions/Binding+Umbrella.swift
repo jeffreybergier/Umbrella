@@ -43,6 +43,7 @@ extension Binding {
 }
 
 extension Binding where Value == Optional<URL> {
+    @available(*, deprecated, message: "This causes bugs where all the text disappears")
     public func mapString(default defaultValue: String = "") -> Binding<String> {
         self.map(get: { $0?.absoluteString ?? defaultValue }, set: { URL(string: $0) })
     }
@@ -52,6 +53,7 @@ extension Binding where Value == Optional<URL> {
 }
 
 extension Binding where Value == URL {
+    @available(*, deprecated, message: "This causes bugs where all the text disappears")
     public func mapString(default defaultValue: URL = URL(string: "about:blank")!) -> Binding<String> {
         self.map(get: { $0.absoluteString }, set: { URL(string: $0) ?? defaultValue })
     }
