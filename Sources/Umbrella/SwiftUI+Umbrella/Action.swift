@@ -51,20 +51,28 @@ public struct Action {
         /// Accessibility hint
         public var hint: LocalizedString?
         public var shortcut: KeyboardShortcut?
+        
+        public func action(with style: Style) -> Action {
+            return Action(style, self)
+        }
     }
     /// Configure the style of the Action
     public struct Style {
         public enum Label {
             case automatic, label, icon, title
         }
-        public var style: Label
+        public var label: Label
         public var button: ButtonRole?
         
-        public init(style: Label = .automatic,
+        public init(label: Label = .automatic,
                     button: ButtonRole? = nil)
         {
-            self.style = style
+            self.label = label
             self.button = button
+        }
+        
+        public func action(with localization: Localization) -> Action {
+            return Action(self, localization)
         }
     }
 }
@@ -180,7 +188,7 @@ extension Action {
                     image
                 }
             }
-            .modifier(LabelStyler(self.style.style))
+            .modifier(LabelStyler(self.style.label))
         } else {
             Text(self.localization.title)
         }
