@@ -26,61 +26,119 @@
 
 import SwiftUI
 
+// MARK: Action
+
 /// Use as an easy way to configure Actions.
-/// Provides convenience methods for creating Buttons and Labels
-public struct Action {
+/// Provides convenience methods for creating Buttons and Labels.
+/// To construct create `ActionLocalization` then construct `ActionStyleImp`.
+/// On `ActionStyleImp` instane, call `actionWith:` method to create `Action`.
+/// Use `some ActionStyle` to hide implementation details from your UI code.
+/// Can be constructed manually with `ActionImp` or by implementing custom type.
+public protocol Action {
+    associatedtype Style: ActionStyle
     
-    public var style: Style
-    public var localization: Localization
+    var localization: ActionLocalization { get }
+    var style: Style { get }
+}
+
+public struct ActionImp<S: ActionStyle>: Action {
     
-    public init(_ style: Style, _ localization: Localization) {
+    public var style: S
+    public var localization: ActionLocalization
+    
+    public init(style: S, localization: ActionLocalization) {
         self.style = style
         self.localization = localization
     }
+}
+
+// MARK: Action Style
+
+/// Configure the style of your Button or Label
+public protocol ActionStyle {
+    associatedtype LS: LabelStyle
+    associatedtype M: ViewModifier
     
-    /// Configure the text of the Action
-    public struct Localization {
-        public enum Image {
-            case system(String)
-            case custom(SwiftUI.Image)
-        }
-        /// Image for the label
-        public var image: Image?
-        /// Visible label and accessibility label
-        public var title: LocalizedString
-        /// Accessibility hint
-        public var hint: LocalizedString?
-        public var shortcut: KeyboardShortcut?
-        
-        public func action(with style: Style) -> Action {
-            return Action(style, self)
+    var label: LS { get }
+    var button: ButtonRole? { get }
+    var modifier: M { get }
+}
+
+extension ActionStyle {
+    public func action(with localization: ActionLocalization) -> some Action {
+        return ActionImp(style: self, localization: localization)
+    }
+}
+
+public struct ActionStyleImp<LS: LabelStyle, M: ViewModifier>: ActionStyle {
+    public var label: LS
+    public var button: ButtonRole?
+    public var modifier: M
+    
+    public init(label: LS = DefaultLabelStyle(),
+                button: ButtonRole? = nil,
+                modifier: M = EmptyModifier())
+    {
+        self.label = label
+        self.button = button
+        self.modifier = modifier
+    }
+}
+
+// MARK: Action Localization
+
+/// Configure the text of the Button or Label
+public struct ActionLocalization {
+    /// Image for the label
+    public var image: ActionLabelImage?
+    /// Visible label and accessibility label
+    public var title: LocalizedString
+    /// Accessibility hint
+    public var hint: LocalizedString?
+    public var shortcut: KeyboardShortcut?
+}
+
+public enum ActionLabelImage {
+    case system(String)
+    case custom(Image)
+    public var image: Image {
+        switch self {
+        case .custom(let image): return image
+        case .system(let name): return Image(systemName: name)
         }
     }
-    /// Configure the style of the Action
-    public struct Style {
-        public enum Label {
-            case automatic, label, icon, title
-        }
-        public var label: Label
-        public var button: ButtonRole?
-        
-        public init(label: Label = .automatic,
-                    button: ButtonRole? = nil)
-        {
-            self.label = label
-            self.button = button
-        }
-        
-        public func action(with localization: Localization) -> Action {
-            return Action(self, localization)
+}
+
+// MARK: Labels
+
+extension Action {
+    public var label: some View {
+        return self.raw_label()
+            .accessibilityLabel(self.localization.title)
+            .if(self.localization.hint) {
+                $0.accessibilityHint($1)
+            }
+    }
+    
+    @ViewBuilder private func raw_label() -> some View {
+        if let image = self.localization.image {
+            Label {
+                Text(self.localization.title)
+            } icon: {
+                image.image
+            }
+            .labelStyle(self.style.label)
+        } else {
+            Text(self.localization.title)
         }
     }
 }
 
 // MARK: Buttons
+
 extension Action {
     
-    public func button(_ isEnabled: EnableBool) -> some View {
+    public func button(_ isEnabled: ActionEnableBool) -> some View {
         Button(action: isEnabled.action, label: self.raw_label)
             .disabled(!isEnabled.isEnabled)
             .accessibilityLabel(self.localization.title)
@@ -93,20 +151,12 @@ extension Action {
                        action: @escaping () -> Void)
                        -> some View
     {
-        let isEnabled = EnableBool(isEnabled, action: action)
+        let isEnabled = ActionEnableBool(isEnabled, action: action)
         return self.button(isEnabled)
     }
+
     
-    public struct EnableBool {
-        public var isEnabled: Bool
-        public var action: () -> Void
-        public init(_ isEnabled: Bool = true, action: @escaping () -> Void) {
-            self.isEnabled = isEnabled
-            self.action = action
-        }
-    }
-    
-    public func button<T>(_ isEnabled: EnableItem<T>) -> some View {
+    public func button<T>(_ isEnabled: ActionEnableItem<T>) -> some View {
         let action: () -> Void = {
             guard let item = isEnabled.item else { return }
             isEnabled.action(item)
@@ -123,20 +173,11 @@ extension Action {
                           action: @escaping (T) -> Void)
                           -> some View
     {
-        let isEnabled = EnableItem(item, action: action)
+        let isEnabled = ActionEnableItem(item, action: action)
         return self.button(isEnabled)
     }
     
-    public struct EnableItem<T> {
-        public var item: T?
-        public var action: (T) -> Void
-        public init(_ item: T?, action: @escaping (T) -> Void) {
-            self.item = item
-            self.action = action
-        }
-    }
-    
-    public func button<C>(_ isEnabled: EnableItems<C>) -> some View {
+    public func button<C>(_ isEnabled: ActionEnableItems<C>) -> some View {
         let action: () -> Void = {
             isEnabled.action(isEnabled.items)
         }
@@ -152,64 +193,34 @@ extension Action {
                           action: @escaping (C) -> Void)
                           -> some View
     {
-        let isEnabled = EnableItems(items, action: action)
+        let isEnabled = ActionEnableItems(items, action: action)
         return self.button(isEnabled)
     }
-    
-    public struct EnableItems<C: Collection> {
-        public var items: C
-        public var action: (C) -> Void
-        public init(_ items: C, action: @escaping (C) -> Void) {
-            self.items = items
-            self.action = action
-        }
+}
+
+public struct ActionEnableBool {
+    public var isEnabled: Bool
+    public var action: () -> Void
+    public init(_ isEnabled: Bool = true, action: @escaping () -> Void) {
+        self.isEnabled = isEnabled
+        self.action = action
     }
 }
 
-// MARK: Labels
-extension Action {
-    public var label: some View {
-        return self.raw_label()
-            .accessibilityLabel(self.localization.title)
-            .if(self.localization.hint) {
-                $0.accessibilityHint($1)
-            }
-    }
-    
-    @ViewBuilder private func raw_label() -> some View {
-        if let image = self.localization.image {
-            Label {
-                Text(self.localization.title)
-            } icon: {
-                switch image {
-                case .system(let image):
-                    SwiftUI.Image(systemName: image)
-                case .custom(let image):
-                    image
-                }
-            }
-            .modifier(LabelStyler(self.style.label))
-        } else {
-            Text(self.localization.title)
-        }
+public struct ActionEnableItem<T> {
+    public var item: T?
+    public var action: (T) -> Void
+    public init(_ item: T?, action: @escaping (T) -> Void) {
+        self.item = item
+        self.action = action
     }
 }
 
-fileprivate struct LabelStyler: ViewModifier {
-    private let style: Action.Style.Label
-    init(_ style: Action.Style.Label) {
-        self.style = style
-    }
-    func body(content: Content) -> some View {
-        switch style {
-        case .automatic:
-            content.labelStyle(.automatic)
-        case .label:
-            content.labelStyle(.titleAndIcon)
-        case .icon:
-            content.labelStyle(.iconOnly)
-        case .title:
-            content.labelStyle(.titleOnly)
-        }
+public struct ActionEnableItems<C: Collection> {
+    public var items: C
+    public var action: (C) -> Void
+    public init(_ items: C, action: @escaping (C) -> Void) {
+        self.items = items
+        self.action = action
     }
 }
