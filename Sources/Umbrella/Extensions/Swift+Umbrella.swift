@@ -26,16 +26,6 @@
 
 import Foundation
 
-extension AnyRandomAccessCollection {
-    public static var empty: Self { .init([]) }
-}
-
-extension RandomAccessCollection {
-    public func eraseToAnyRandomAccessCollection() -> AnyRandomAccessCollection<Self.Element> {
-        return AnyRandomAccessCollection(self)
-    }
-}
-
 extension Result {
     public var value: Success? {
         switch self {
