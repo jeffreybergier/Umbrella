@@ -133,6 +133,7 @@ public enum ActionLabelImage {
 extension Action {
     public var label: some View {
         return self.raw_label()
+            .modifier(self.style.modifier)
             .accessibilityLabel(self.localization.title)
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
@@ -160,6 +161,7 @@ extension Action {
     public func button(_ isEnabled: ActionEnableBool) -> some View {
         Button(action: isEnabled.action, label: self.raw_label)
             .disabled(!isEnabled.isEnabled)
+            .modifier(self.style.modifier)
             .accessibilityLabel(self.localization.title)
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
@@ -182,6 +184,7 @@ extension Action {
         }
         return Button(action: action, label: self.raw_label)
             .disabled(isEnabled.item == nil)
+            .modifier(self.style.modifier)
             .accessibilityLabel(self.localization.title)
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
@@ -202,6 +205,7 @@ extension Action {
         }
         return Button(action: action, label: self.raw_label)
             .disabled(isEnabled.items.isEmpty)
+            .modifier(self.style.modifier)
             .accessibilityLabel(self.localization.title)
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
