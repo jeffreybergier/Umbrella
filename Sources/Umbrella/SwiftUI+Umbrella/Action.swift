@@ -31,7 +31,7 @@ import SwiftUI
 /// Use as an easy way to configure Actions.
 /// Provides convenience methods for creating Buttons and Labels.
 /// To construct create `ActionLocalization` then construct `ActionStyleImp`.
-/// On `ActionStyleImp` instane, call `actionWith:` method to create `Action`.
+/// On either instance, call `actionWith:` method to create `Action`.
 /// Use `some ActionStyle` to hide implementation details from your UI code.
 /// Can be constructed manually with `ActionImp` or by implementing custom type.
 public protocol Action {
@@ -70,7 +70,11 @@ extension ActionStyle {
     }
 }
 
+public let ActionStyleDefault: some ActionStyle = ActionStyleImp()
+
 public struct ActionStyleImp<LS: LabelStyle, M: ViewModifier>: ActionStyle {
+    
+    
     public var label: LS
     public var button: ButtonRole?
     public var modifier: M
@@ -96,6 +100,21 @@ public struct ActionLocalization {
     /// Accessibility hint
     public var hint: LocalizedString?
     public var shortcut: KeyboardShortcut?
+    
+    public init(title: LocalizedString,
+                hint: LocalizedString? = nil,
+                image: ActionLabelImage? = nil,
+                shortcut: KeyboardShortcut? = nil)
+    {
+        self.image = image
+        self.title = title
+        self.hint = hint
+        self.shortcut = shortcut
+    }
+    
+    public func action<S: ActionStyle>(with style: S) -> some Action {
+        return ActionImp(style: style, localization: self)
+    }
 }
 
 public enum ActionLabelImage {
