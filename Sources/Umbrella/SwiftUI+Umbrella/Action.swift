@@ -65,27 +65,39 @@ public protocol ActionStyle {
 }
 
 extension ActionStyle {
-    public func action(with localization: ActionLocalization) -> some Action {
+    public func action(text localization: ActionLocalization) -> some Action {
         return ActionImp(style: self, localization: localization)
     }
 }
 
-public let ActionStyleDefault: some ActionStyle = ActionStyleImp()
-
 public struct ActionStyleImp<LS: LabelStyle, M: ViewModifier>: ActionStyle {
     
-    
-    public var label: LS
     public var button: ButtonRole?
+    public var label: LS
     public var modifier: M
     
-    public init(label: LS = DefaultLabelStyle(),
-                button: ButtonRole? = nil,
-                modifier: M = EmptyModifier())
-    {
-        self.label = label
+    public init(button: ButtonRole? = nil, label: LS, modifier: M) {
         self.button = button
+        self.label = label
         self.modifier = modifier
+    }
+    
+    public init(button: ButtonRole? = nil) where LS == DefaultLabelStyle, M == EmptyModifier {
+        self.button = button
+        self.label = DefaultLabelStyle()
+        self.modifier = EmptyModifier()
+    }
+    
+    public init(button: ButtonRole? = nil, modifier: M) where LS == DefaultLabelStyle {
+        self.button = button
+        self.label = DefaultLabelStyle()
+        self.modifier = modifier
+    }
+    
+    public init(button: ButtonRole? = nil, label: LS) where M == EmptyModifier {
+        self.button = button
+        self.label = label
+        self.modifier = EmptyModifier()
     }
 }
 
@@ -112,7 +124,7 @@ public struct ActionLocalization {
         self.shortcut = shortcut
     }
     
-    public func action<S: ActionStyle>(with style: S) -> some Action {
+    public func action<S: ActionStyle>(style: S) -> some Action {
         return ActionImp(style: style, localization: self)
     }
 }
