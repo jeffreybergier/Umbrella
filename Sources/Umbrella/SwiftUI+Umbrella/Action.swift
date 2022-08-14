@@ -171,21 +171,8 @@ extension Action {
 extension Action {
     
     public func button(_ isEnabled: ActionEnableBool) -> some View {
-        Button(action: isEnabled.action, label: self.raw_label)
-            .disabled(!isEnabled.isEnabled)
-            .modifier(self.style.modifier)
-            .accessibilityLabel(self.localization.title)
-            .if(self.localization.hint) {
-                $0.accessibilityHint($1)
-            }
-    }
-    
-    public func button(isEnabled: Bool = true,
-                       action: @escaping () -> Void)
-                       -> some View
-    {
-        let isEnabled = ActionEnableBool(isEnabled, action: action)
-        return self.button(isEnabled)
+        return self.raw_button(action: isEnabled.action)
+                   .disabled(!isEnabled.isEnabled)
     }
 
     
@@ -194,13 +181,24 @@ extension Action {
             guard let item = isEnabled.item else { return }
             isEnabled.action(item)
         }
-        return Button(action: action, label: self.raw_label)
-            .disabled(isEnabled.item == nil)
-            .modifier(self.style.modifier)
-            .accessibilityLabel(self.localization.title)
-            .if(self.localization.hint) {
-                $0.accessibilityHint($1)
-            }
+        return self.raw_button(action: action)
+                   .disabled(isEnabled.item == nil)
+    }
+    
+    public func button<C>(_ isEnabled: ActionEnableItems<C>) -> some View {
+        let action: () -> Void = {
+            isEnabled.action(isEnabled.items)
+        }
+        return self.raw_button(action: action)
+                   .disabled(isEnabled.items.isEmpty)
+    }
+    
+    public func button(isEnabled: Bool = true,
+                       action: @escaping () -> Void)
+                       -> some View
+    {
+        let isEnabled = ActionEnableBool(isEnabled, action: action)
+        return self.button(isEnabled)
     }
     
     public func button<T>(item: T?,
@@ -211,25 +209,24 @@ extension Action {
         return self.button(isEnabled)
     }
     
-    public func button<C>(_ isEnabled: ActionEnableItems<C>) -> some View {
-        let action: () -> Void = {
-            isEnabled.action(isEnabled.items)
-        }
-        return Button(action: action, label: self.raw_label)
-            .disabled(isEnabled.items.isEmpty)
-            .modifier(self.style.modifier)
-            .accessibilityLabel(self.localization.title)
-            .if(self.localization.hint) {
-                $0.accessibilityHint($1)
-            }
-    }
-    
     public func button<C: Collection>(items: C,
                           action: @escaping (C) -> Void)
                           -> some View
     {
         let isEnabled = ActionEnableItems(items, action: action)
         return self.button(isEnabled)
+    }
+    
+    private func raw_button(action: @escaping () -> Void) -> some View {
+        Button(action: action, label: self.raw_label)
+            .if(self.localization.shortcut) {
+                $0.keyboardShortcut($1)
+            }
+            .accessibilityLabel(self.localization.title)
+            .if(self.localization.hint) {
+                $0.accessibilityHint($1)
+            }
+            .modifier(self.style.modifier)
     }
 }
 
