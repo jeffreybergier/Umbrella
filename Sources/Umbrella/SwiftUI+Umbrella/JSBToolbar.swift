@@ -27,60 +27,35 @@
 import SwiftUI
 
 public struct JSBToolbar: ViewModifier {
-    
-    public struct Action {
-        public var title: LocalizedString
-        public var action: () -> Void
-        public init(title: LocalizedString, action: @escaping () -> Void) {
-            self.title = title
-            self.action = action
-        }
-    }
-    
-    private var title: LocalizedString
-    private var done: Action
-    private var cancel: Action?
-    private var delete: Action?
 
-    public init(title: LocalizedString,
-                done: Action,
-                cancel: Action? = nil,
-                delete: Action? = nil)
+    private var title:  LocalizedString
+    private var done:   ActionLocalization
+    private var cancel: ActionLocalization?
+    private var delete: ActionLocalization?
+    
+    public var actionDone:   () -> Void
+    public var actionCancel: (() -> Void)?
+    public var actionDelete: (() -> Void)?
+    
+    private var styleDone:   some ActionStyle = ActionStyleImp(label: .titleOnly)
+    private var styleCancel: some ActionStyle = ActionStyleImp(button: .cancel, label: .titleOnly)
+    private var styleDelete: some ActionStyle = ActionStyleImp(button: .destructive, label: .titleOnly)
+
+    public init(title:  LocalizedString,
+                done:   ActionLocalization,
+                cancel: ActionLocalization? = nil,
+                delete: ActionLocalization? = nil,
+                doneAction: @escaping () -> Void,
+                cancelAction: (() -> Void)? = nil,
+                deleteAction: (() -> Void)? = nil)
     {
         self.title = title
         self.done = done
         self.cancel = cancel
         self.delete = delete
-    }
-    
-    public init(title: LocalizedString,
-                done: LocalizedString,
-                doneAction: @escaping () -> Void)
-    {
-        self.title = title
-        self.done = .init(title: done, action: doneAction)
-    }
-    
-    public init(title: LocalizedString,
-                done: LocalizedString,
-                cancel: LocalizedString,
-                doneAction: @escaping () -> Void,
-                cancelAction: @escaping () -> Void)
-    {
-        self.title = title
-        self.done = .init(title: done, action: doneAction)
-        self.cancel = .init(title: cancel, action: cancelAction)
-    }
-    
-    public init(title: LocalizedString,
-                done: LocalizedString,
-                delete: LocalizedString,
-                doneAction: @escaping () -> Void,
-                deleteAction: @escaping () -> Void)
-    {
-        self.title = title
-        self.done = .init(title: done, action: doneAction)
-        self.delete = .init(title: delete, action: deleteAction)
+        self.actionDone = doneAction
+        self.actionCancel = cancelAction
+        self.actionDelete = deleteAction
     }
     
     public func body(content: Content) -> some View {
@@ -88,20 +63,20 @@ public struct JSBToolbar: ViewModifier {
             .navigationTitle(self.title)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(self.done.title, action: self.done.action)
+                    self.styleDone.action(text: self.done).button(action: self.actionDone)
                 }
                 ToolbarItem(placement: .cancellationAction) {
-                    self.cancellationAction
+                    if let cancel {
+                        self.styleCancel
+                            .action(text: cancel)
+                            .button(item: self.actionCancel, action: { $0() })
+                    } else if let delete {
+                        self.styleDelete
+                            .action(text: delete)
+                            .button(item: self.actionDelete, action: { $0() })
+                    }
                 }
             }
             .navigationBarTitleDisplayModeInline
-    }
-    
-    @ViewBuilder private var cancellationAction: some View {
-        if let cancel {
-            Button(cancel.title, role: .cancel, action: cancel.action)
-        } else if let delete {
-            Button(delete.title, role: .destructive, action: delete.action)
-        }
     }
 }
