@@ -34,6 +34,7 @@ import UIKit
 import WatchKit
 #endif
 
+@available(*, deprecated, message: "Is this used?")
 public protocol CacheProtocol: AnyObject {
     associatedtype Key: Hashable
     associatedtype Value
@@ -59,6 +60,7 @@ extension CacheProtocol {
 }
 
 /// Publishes changes to T through ObjectWillChangePublisher
+@available(*, deprecated, message: "Is this used?")
 public class PublishedCache<K: Hashable, V>: ObservableObject, CacheProtocol {
     @Published public var cache: [K: V] = [:]
     private var tokens: Set<AnyCancellable> = []
@@ -77,6 +79,7 @@ public class PublishedCache<K: Hashable, V>: ObservableObject, CacheProtocol {
 }
 
 /// Never publishes changes through ObjectWillChangePublisher
+@available(*, deprecated, message: "Is this used?")
 public class Cache<K: Hashable, V>: ObservableObject, CacheProtocol {
     public var cache: [K: V] = [:]
     private var tokens: Set<AnyCancellable> = []
@@ -94,6 +97,7 @@ public class Cache<K: Hashable, V>: ObservableObject, CacheProtocol {
     }
 }
 
+@available(*, deprecated, message: "Is this used?")
 public enum CacheProtocolNotification {
     
     public static let shouldClear = Notification.Name(rawValue: "JSBUmbrellaCacheProtocolShouldClearNotification")

@@ -36,6 +36,7 @@ public typealias ErrorQueue = EnvironmentQueue<UserFacingError>
 /// using `.modifier(UserFacingErrorAlert(self.$errorQueue))` syntax for presenting
 /// errors. When the error is dismissed, the system sets the property to NIL. In this case, the error
 /// is removed the queue and the next error is presented.
+@available(*, deprecated, message: "Is this used?")
 @propertyWrapper
 public struct EnvironmentQueue<T>: DynamicProperty {
     

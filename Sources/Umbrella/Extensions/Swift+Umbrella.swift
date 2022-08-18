@@ -59,6 +59,7 @@ extension Result {
 }
 
 /// Returns the same output of `_typeName` but missing the framework name at the beginning
+@available(*, deprecated, message: "Is this used?")
 public func __typeName(_ input: Any.Type) -> String {
     return _typeName(input)
         .components(separatedBy: ".")
@@ -67,6 +68,7 @@ public func __typeName(_ input: Any.Type) -> String {
 }
 
 // Internal for testing only
+@available(*, deprecated, message: "Is this used?")
 internal func __typeName_framework(_ input: Any.Type) -> String {
     return _typeName(input)
         .components(separatedBy: ".")
@@ -76,6 +78,7 @@ internal func __typeName_framework(_ input: Any.Type) -> String {
 extension Bundle {
     /// Uses fragile (and slow) method to find Bundle for a non-objective-c type
     /// If you need the bundle for an Objective-C type, please use the correct initalizer
+    @available(*, deprecated, message: "Is this used?")
     public static func `for`(type input: Any.Type) -> Bundle? {
         let check1: (Bundle) -> Bool = {
             !($0.bundleIdentifier ?? "com.apple").hasPrefix("com.apple")

@@ -26,6 +26,7 @@
 
 import Foundation
 
+/// Use to store errors in something that requires codable such as `SceneStorage` / `AppStorage`
 public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
     
     public var id: UUID = .init()

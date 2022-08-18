@@ -26,6 +26,7 @@
 
 import SwiftUI
 
+@available(*, deprecated, message: "Is this used?")
 public struct JSBAlert<P, A: View, M: View, T: StringProtocol>: ViewModifier {
     @Binding private var isPresented: Bool
     private var titleKey: T

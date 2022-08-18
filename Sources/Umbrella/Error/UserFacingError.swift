@@ -28,6 +28,7 @@ import Foundation
 
 public typealias UFError = UserFacingError
 
+/// Use with `UserFacingErrorAlert` to easily present errors to the user
 public protocol UserFacingError: CustomNSError {
     /// Default implementation is "Error"
     var title: LocalizationKey { get }

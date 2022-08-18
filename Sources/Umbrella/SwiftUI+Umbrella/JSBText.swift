@@ -45,9 +45,9 @@ public struct JSBText<T: StringProtocol, S: StringProtocol>: View {
     
     public var body: some View {
         if let trimmed = self.text?.trimmed {
-            SwiftUI.Text(trimmed)
+            Text(trimmed)
         } else {
-            SwiftUI.Text(self.titleKey)
+            Text(self.titleKey)
                 .preference(key: isFallbackKey.self, value: true)
         }
     }
