@@ -36,10 +36,6 @@ public struct JSBToolbar: ViewModifier {
     public var actionDone:   () -> Void
     public var actionCancel: (() -> Void)?
     public var actionDelete: (() -> Void)?
-    
-    private var styleDone:   some ActionStyle = ActionStyleImp(label: .titleOnly)
-    private var styleCancel: some ActionStyle = ActionStyleImp(button: .cancel, label: .titleOnly)
-    private var styleDelete: some ActionStyle = ActionStyleImp(button: .destructive, label: .titleOnly)
 
     public init(title:  LocalizedString,
                 done:   ActionLocalization,
@@ -63,20 +59,30 @@ public struct JSBToolbar: ViewModifier {
             .navigationTitle(self.title)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    self.styleDone.action(text: self.done).button(action: self.actionDone)
+                    JSBToolbarButtonStyleDone.action(text: self.done).button(action: self.actionDone)
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     if let cancel {
-                        self.styleCancel
+                        JSBToolbarButtonStyleCancel
                             .action(text: cancel)
                             .button(item: self.actionCancel, action: { $0() })
                     } else if let delete {
-                        self.styleDelete
+                        JSBToolbarButtonStyleDelete
                             .action(text: delete)
                             .button(item: self.actionDelete, action: { $0() })
                     }
                 }
             }
             .navigationBarTitleDisplayModeInline
+    }
+}
+
+public let JSBToolbarButtonStyleDone:   some ActionStyle = ActionStyleImp(label: .titleOnly, modifier: JSBToolbarButtonDone())
+public let JSBToolbarButtonStyleCancel: some ActionStyle = ActionStyleImp(button: .cancel, label: .titleOnly)
+public let JSBToolbarButtonStyleDelete: some ActionStyle = ActionStyleImp(button: .destructive, label: .titleOnly)
+
+fileprivate struct JSBToolbarButtonDone: ViewModifier {
+    internal func body(content: Content) -> some View {
+        content.bold(true)
     }
 }
