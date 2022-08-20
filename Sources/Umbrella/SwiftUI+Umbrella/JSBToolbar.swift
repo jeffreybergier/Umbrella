@@ -83,6 +83,10 @@ public let JSBToolbarButtonStyleDelete: some ActionStyle = ActionStyleImp(button
 
 fileprivate struct JSBToolbarButtonDone: ViewModifier {
     internal func body(content: Content) -> some View {
-        content.bold(true)
+        if #available(iOS 16.0, macOS 13.0, *) {
+            content.bold(true)
+        } else {
+            content
+        }
     }
 }
