@@ -54,14 +54,22 @@ public struct ActionImp<S: ActionStyle>: Action {
 
 // MARK: Action Style
 
-/// Configure the style of your Button or Label
+/// Make the creation of buttons and labels that are accessible and have keyboard shortcuts easy.
+/// Customize by using `outerModifier`. Make sophisitcated labels using `innerModifier`.
+/// Use `some ActionStyle` with `ActionStyleImp` to hide implementation details.
 public protocol ActionStyle {
     associatedtype LS: LabelStyle
-    associatedtype M: ViewModifier
+    associatedtype M1: ViewModifier
+    associatedtype M2: ViewModifier
     
-    var label: LS { get }
-    var button: ButtonRole? { get }
-    var modifier: M { get }
+    /// Define the system role of the button
+    var buttonRole:    ButtonRole? { get }
+    /// Choose how the label shows the icon
+    var labelStyle:    LS { get }
+    /// Style and modify the entire button / label
+    var outerModifier: M1 { get }
+    /// Style and modify the text inside the label but not the whole label
+    var innerModifier: M2 { get }
 }
 
 extension ActionStyle {
@@ -70,34 +78,18 @@ extension ActionStyle {
     }
 }
 
-public struct ActionStyleImp<LS: LabelStyle, M: ViewModifier>: ActionStyle {
+public struct ActionStyleImp<LS: LabelStyle, M1: ViewModifier, M2: ViewModifier>: ActionStyle {
     
-    public var button: ButtonRole?
-    public var label: LS
-    public var modifier: M
+    public var buttonRole: ButtonRole?
+    public var labelStyle: LS
+    public var outerModifier: M1
+    public var innerModifier: M2
     
-    public init(button: ButtonRole? = nil, label: LS, modifier: M) {
-        self.button = button
-        self.label = label
-        self.modifier = modifier
-    }
-    
-    public init(button: ButtonRole? = nil) where LS == DefaultLabelStyle, M == EmptyModifier {
-        self.button = button
-        self.label = DefaultLabelStyle()
-        self.modifier = EmptyModifier()
-    }
-    
-    public init(button: ButtonRole? = nil, modifier: M) where LS == DefaultLabelStyle {
-        self.button = button
-        self.label = DefaultLabelStyle()
-        self.modifier = modifier
-    }
-    
-    public init(button: ButtonRole? = nil, label: LS) where M == EmptyModifier {
-        self.button = button
-        self.label = label
-        self.modifier = EmptyModifier()
+    public init(buttonRole: ButtonRole? = nil, labelStyle: LS, outerModifier: M1, innerModifier: M2) {
+        self.buttonRole = buttonRole
+        self.labelStyle = labelStyle
+        self.outerModifier = outerModifier
+        self.innerModifier = innerModifier
     }
 }
 
@@ -145,7 +137,7 @@ public enum ActionLabelImage {
 extension Action {
     public var label: some View {
         return self.raw_label()
-            .modifier(self.style.modifier)
+            .modifier(self.style.outerModifier)
             .accessibilityLabel(self.localization.title)
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
@@ -156,12 +148,14 @@ extension Action {
         if let image = self.localization.image {
             Label {
                 Text(self.localization.title)
+                    .modifier(self.style.innerModifier)
             } icon: {
                 image.image
             }
-            .labelStyle(self.style.label)
+            .labelStyle(self.style.labelStyle)
         } else {
             Text(self.localization.title)
+                .modifier(self.style.innerModifier)
         }
     }
 }
@@ -226,7 +220,7 @@ extension Action {
             .if(self.localization.hint) {
                 $0.accessibilityHint($1)
             }
-            .modifier(self.style.modifier)
+            .modifier(self.style.outerModifier)
     }
 }
 
@@ -254,5 +248,57 @@ public struct ActionEnableItems<C: Collection> {
     public init(_ items: C, action: @escaping (C) -> Void) {
         self.items = items
         self.action = action
+    }
+}
+
+// MARK: Convenience initializers
+extension ActionStyleImp {
+    public init(buttonRole: ButtonRole? = nil) where LS == DefaultLabelStyle, M1 == EmptyModifier, M2 == EmptyModifier {
+        self.buttonRole = buttonRole
+        self.labelStyle = DefaultLabelStyle()
+        self.outerModifier = EmptyModifier()
+        self.innerModifier = EmptyModifier()
+    }
+    
+    public init(buttonRole: ButtonRole? = nil, outerModifier: M1) where LS == DefaultLabelStyle, M2 == EmptyModifier {
+        self.buttonRole = buttonRole
+        self.labelStyle = DefaultLabelStyle()
+        self.outerModifier = outerModifier
+        self.innerModifier = EmptyModifier()
+    }
+    
+    public init(buttonRole: ButtonRole? = nil, innerModifier: M2) where LS == DefaultLabelStyle, M1 == EmptyModifier {
+        self.buttonRole = buttonRole
+        self.labelStyle = DefaultLabelStyle()
+        self.outerModifier = EmptyModifier()
+        self.innerModifier = innerModifier
+    }
+    
+    public init(buttonRole: ButtonRole? = nil, outerModifier: M1, innerModifier: M2) where LS == DefaultLabelStyle {
+        self.buttonRole = buttonRole
+        self.labelStyle = DefaultLabelStyle()
+        self.outerModifier = outerModifier
+        self.innerModifier = innerModifier
+    }
+    
+    public init(buttonRole: ButtonRole? = nil, labelStyle: LS) where M1 == EmptyModifier, M2 == EmptyModifier {
+        self.buttonRole = buttonRole
+        self.labelStyle = labelStyle
+        self.outerModifier = EmptyModifier()
+        self.innerModifier = EmptyModifier()
+    }
+    
+    public init(buttonRole: ButtonRole? = nil, labelStyle: LS, outerModifier: M1) where M2 == EmptyModifier {
+        self.buttonRole = buttonRole
+        self.labelStyle = labelStyle
+        self.outerModifier = outerModifier
+        self.innerModifier = EmptyModifier()
+    }
+    
+    public init(buttonRole: ButtonRole? = nil, labelStyle: LS, innerModifier: M2) where M1 == EmptyModifier {
+        self.buttonRole = buttonRole
+        self.labelStyle = labelStyle
+        self.outerModifier = EmptyModifier()
+        self.innerModifier = innerModifier
     }
 }

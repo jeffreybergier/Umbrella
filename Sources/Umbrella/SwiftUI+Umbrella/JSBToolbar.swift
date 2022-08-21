@@ -77,9 +77,9 @@ public struct JSBToolbar: ViewModifier {
     }
 }
 
-public let JSBToolbarButtonStyleDone:   some ActionStyle = ActionStyleImp(label: .titleOnly, modifier: JSBToolbarButtonDone())
-public let JSBToolbarButtonStyleCancel: some ActionStyle = ActionStyleImp(button: .cancel, label: .titleOnly)
-public let JSBToolbarButtonStyleDelete: some ActionStyle = ActionStyleImp(button: .destructive, label: .titleOnly)
+public let JSBToolbarButtonStyleDone:   some ActionStyle = ActionStyleImp(labelStyle: .titleOnly, outerModifier: JSBToolbarButtonDone())
+public let JSBToolbarButtonStyleCancel: some ActionStyle = ActionStyleImp(buttonRole: .cancel, labelStyle: .titleOnly)
+public let JSBToolbarButtonStyleDelete: some ActionStyle = ActionStyleImp(buttonRole: .destructive, labelStyle: .titleOnly)
 
 fileprivate struct JSBToolbarButtonDone: ViewModifier {
     internal func body(content: Content) -> some View {
