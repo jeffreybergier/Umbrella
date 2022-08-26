@@ -45,8 +45,8 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     {
         let url = navigationAction.request.url!
         guard
-            let comp = URLComponents(url: url, resolvingAgainstBaseURL: true),
-            comp.scheme == "http" || comp.scheme == "https" || comp.scheme == "about"
+            let scheme = URLComponents(url: url, resolvingAgainstBaseURL: true)?.scheme,
+            scheme == "http" || scheme == "https" || scheme == "about"
         else {
             decisionHandler(.cancel, preferences)
             NSLog("InvalidURL: \(url)")
