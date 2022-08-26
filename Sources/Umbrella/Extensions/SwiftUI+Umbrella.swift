@@ -218,11 +218,9 @@ extension View {
 // MARK: State Management Helpers
 
 extension View {
-    /// Performs onChange but also performs on initial load via `.task` modifier
+    /// Performs `.onChange` but also performs on initial load via `.onAppear` modifier
     public func onLoadChange<T: Equatable>(of change: T, perform: @escaping (T) -> Void) -> some View {
         self.onChange(of: change, perform: perform)
-            .task(priority: .userInitiated) {
-                DispatchQueue.main.sync { perform(change) }
-            }
+            .onAppear { perform(change) }
     }
 }
