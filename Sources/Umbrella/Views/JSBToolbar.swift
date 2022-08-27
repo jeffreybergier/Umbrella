@@ -59,7 +59,9 @@ public struct JSBToolbar: ViewModifier {
             .navigationTitle(self.title)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    JSBToolbarButtonStyleDone.action(text: self.done).button(action: self.actionDone)
+                    JSBToolbarButtonStyleDone
+                        .action(text: self.done)
+                        .button(action: self.actionDone)
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     if let cancel {
