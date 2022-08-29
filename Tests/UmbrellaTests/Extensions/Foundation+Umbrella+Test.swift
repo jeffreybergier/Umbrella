@@ -27,7 +27,7 @@
 import XCTest
 import Umbrella
 
-class FoundationUmbrellaTests: XCTestCase {
+class FoundationUmbrella_Test: XCTestCase {
 
     func test_string_trim() {
         XCTAssertNil("".trimmed)
@@ -36,6 +36,16 @@ class FoundationUmbrellaTests: XCTestCase {
         XCTAssertEqual("  \n   aString   \n   ".trimmed, "aString")
         // does interrupt white space in the middle, just the ends
         XCTAssertEqual("  \n   aStr \n ing   \n   ".trimmed, "aStr \n ing")
+    }
+    
+    func test_JSBImage() {
+        #if canImport(UIKit)
+        let image = JSBImage(systemName: "xmark")
+        XCTAssertTrue(image!.isKind(of: UIImage.self))
+        #else
+        let image = JSBImage(systemSymbolName: "xmark", accessibilityDescription: nil)
+        XCTAssertTrue(image!.isKind(of: NSImage.self))
+        #endif
     }
     
 }
