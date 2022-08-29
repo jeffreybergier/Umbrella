@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/02/22.
+//  Created by Jeffrey Bergier on 2022/08/29.
 //
 //  MIT License
 //
@@ -25,27 +25,12 @@
 //
 
 import XCTest
+import TestUmbrella
 import Umbrella
 
-class FoundationUmbrella_Tests: XCTestCase {
-
-    func test_string_trim() {
-        XCTAssertNil("".trimmed)
-        XCTAssertNil("\n\n\n    \n\n\n\n    \n".trimmed)
-        XCTAssertEqual("aString".trimmed, "aString")
-        XCTAssertEqual("  \n   aString   \n   ".trimmed, "aString")
-        // does interrupt white space in the middle, just the ends
-        XCTAssertEqual("  \n   aStr \n ing   \n   ".trimmed, "aStr \n ing")
-    }
+class JSBToolbar_Tests: AsyncTestCase {
     
-    func test_JSBImage() {
-        #if canImport(UIKit)
-        let image = JSBImage(systemName: "xmark")
-        XCTAssertTrue(image!.isKind(of: UIImage.self))
-        #else
-        let image = JSBImage(systemSymbolName: "xmark", accessibilityDescription: nil)
-        XCTAssertTrue(image!.isKind(of: NSImage.self))
-        #endif
+    func test_something() {
     }
     
 }

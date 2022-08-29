@@ -29,7 +29,7 @@ import TestUmbrella
 import WebKit
 @testable import Umbrella
 
-class GenericWebKitNavigationDelegate_Test: AsyncTestCase {
+class GenericWebKitNavigationDelegate_Tests: AsyncTestCase {
     
     let fakeError = NSError(domain: "drag", code: 420)
     let fakeWebview = WKWebView()
