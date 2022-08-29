@@ -44,15 +44,11 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void)
     {
         let url = navigationAction.request.url!
-        guard
-            let scheme = URLComponents(url: url, resolvingAgainstBaseURL: true)?.scheme,
-            scheme == "http" || scheme == "https" || scheme == "about"
-        else {
-            decisionHandler(.cancel, preferences)
-            NSLog("InvalidURL: \(url)")
-            return
+        let decision = type(of: self).decision(for: url)
+        if decision == .cancel {
+            NSLog("Invalid URL: \(url.absoluteString)")
         }
-        decisionHandler(.allow, preferences)
+        decisionHandler(decision, preferences)
     }
     
     public func webView(_ webView: WKWebView,
@@ -67,6 +63,16 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
                         withError error: Swift.Error)
     {
         self.onError?(error)
+    }
+    
+    internal static func decision(for url: URL) -> WKNavigationActionPolicy {
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: true)
+        let scheme = components?.scheme ?? ""
+        if scheme == "http" || scheme == "https" || scheme == "about" {
+            return .allow
+        } else {
+            return .cancel
+        }
     }
 }
 #endif
