@@ -25,12 +25,35 @@
 //
 
 import XCTest
-import TestUmbrella
-import Umbrella
+import SwiftUI
+@testable import Umbrella
 
-class JSBToolbar_Tests: AsyncTestCase {
+class JSBToolbar_Tests: XCTestCase {
     
-    func test_something() {
+    func test_baseStyles() {
+        _ = {
+            let test = JSBToolbarButtonStyleDone
+            XCTAssertNil(test.buttonRole)
+            XCTAssertTrue(type(of: test.labelStyle) == TitleOnlyLabelStyle.self)
+            XCTAssertTrue(type(of: test.outerModifier) == JSBToolbarButtonDone.self)
+            XCTAssertTrue(type(of: test.innerModifier) == EmptyModifier.self)
+        }()
+        
+        _ = {
+            let test = JSBToolbarButtonStyleCancel
+            XCTAssertEqual(test.buttonRole, .cancel)
+            XCTAssertTrue(type(of: test.labelStyle) == TitleOnlyLabelStyle.self)
+            XCTAssertTrue(type(of: test.outerModifier) == EmptyModifier.self)
+            XCTAssertTrue(type(of: test.innerModifier) == EmptyModifier.self)
+        }()
+        
+        _ = {
+            let test = JSBToolbarButtonStyleDelete
+            XCTAssertEqual(test.buttonRole, .destructive)
+            XCTAssertTrue(type(of: test.labelStyle) == TitleOnlyLabelStyle.self)
+            XCTAssertTrue(type(of: test.outerModifier) == EmptyModifier.self)
+            XCTAssertTrue(type(of: test.innerModifier) == EmptyModifier.self)
+        }()
     }
     
 }
