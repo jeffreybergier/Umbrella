@@ -1,0 +1,17 @@
+name: "Manual: Unit Tests: Xcode 14, watchOS 9, tvOS 16"
+on: [workflow_dispatch]
+
+jobs:
+  run_tests:
+    runs-on: macos-12
+    name: "Xcode 14: Execute Unit Tests"
+    steps:
+    - uses: actions/checkout@v3
+    - name: "Xcode Select"
+      run: sudo xcode-select -switch /Applications/Xcode_14.0.app && /usr/bin/xcodebuild -version
+    - name: "Download watchOS 9 and tvOS 16"
+      run: xcodebuild -downloadAllPlatforms
+    - name: "watchOS 9"
+      run: xcodebuild test -scheme Umbrella-Package -sdk watchsimulator9.0 -destination "OS=9.0,name=Apple Watch Series 5 - 40mm"
+    - name: "tvOS 16"
+      run: xcodebuild test -scheme Umbrella-Package -sdk appletvsimulator16.0 -destination "OS=16.0,name=Apple TV 4K (2nd generation)"
