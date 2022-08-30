@@ -1,5 +1,5 @@
 name: "Automatic: Unit Tests: Xcode 14, watchOS 9, tvOS 16"
-on: [workflow dispatch]
+on: [workflow_dispatch]
 
 jobs:
   run_tests:
