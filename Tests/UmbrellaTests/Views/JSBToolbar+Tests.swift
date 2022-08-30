@@ -26,9 +26,26 @@
 
 import XCTest
 import SwiftUI
+import TestUmbrella
 @testable import Umbrella
 
-class JSBToolbar_Tests: XCTestCase {
+// TODO: Test the views directly
+// https://betterprogramming.pub/how-to-test-swiftui-views-smartly-6c6b13f9edb1?gi=250441c8efc
+class JSBToolbar_Tests: AsyncTestCase {
+    
+    let title  = "Hello World"
+    let done   = ActionLocalization(title: "DoneDone",
+                                    hint: "DoneHint",
+                                    image: .system("xmark"),
+                                    shortcut: .defaultAction)
+    let cancel = ActionLocalization(title: "CancelCancel",
+                                    hint: "CancelHint",
+                                    image: .system("xmark"),
+                                    shortcut: .cancelAction)
+    let delete = ActionLocalization(title: "DeleteDelete",
+                                    hint: "DeleteHint",
+                                    image: nil,
+                                    shortcut: nil)
     
     func test_baseStyles() {
         _ = {
@@ -38,7 +55,6 @@ class JSBToolbar_Tests: XCTestCase {
             XCTAssertTrue(type(of: test.outerModifier) == JSBToolbarButtonDone.self)
             XCTAssertTrue(type(of: test.innerModifier) == EmptyModifier.self)
         }()
-        
         _ = {
             let test = JSBToolbarButtonStyleCancel
             XCTAssertEqual(test.buttonRole, .cancel)
@@ -46,7 +62,6 @@ class JSBToolbar_Tests: XCTestCase {
             XCTAssertTrue(type(of: test.outerModifier) == EmptyModifier.self)
             XCTAssertTrue(type(of: test.innerModifier) == EmptyModifier.self)
         }()
-        
         _ = {
             let test = JSBToolbarButtonStyleDelete
             XCTAssertEqual(test.buttonRole, .destructive)
@@ -56,4 +71,70 @@ class JSBToolbar_Tests: XCTestCase {
         }()
     }
     
+    func test_initClosureStorage() {
+        let wait = self.newWait(count: 3)
+        let done = { wait(nil) }
+        let cancel = { wait(nil) }
+        let delete = { wait(nil) }
+        let toolbar = JSBToolbar(title: self.title,
+                                 done: self.done,
+                                 cancel: self.cancel,
+                                 delete: self.delete,
+                                 doneAction: done,
+                                 cancelAction: cancel,
+                                 deleteAction: delete)
+        toolbar.actionDone()
+        toolbar.actionCancel?()
+        toolbar.actionDelete?()
+        self.wait(for: .instant)
+    }
+    
+    func test_initAPI_correct() {
+        let toolbars = [
+            JSBToolbar(title: self.title,
+                       done: self.done,
+                       cancel: self.cancel,
+                       delete: self.delete,
+                       doneAction: {},
+                       cancelAction: {},
+                       deleteAction: {}),
+            JSBToolbar(title: self.title,
+                       done: self.done,
+                       doneAction: {}),
+            JSBToolbar(title: self.title,
+                       done: self.done,
+                       cancel: self.cancel,
+                       doneAction: {},
+                       cancelAction: {}),
+            JSBToolbar(title: self.title,
+                       done: self.done,
+                       delete: self.delete,
+                       doneAction: {},
+                       deleteAction: {}),
+        ]
+        XCTAssertEqual(toolbars.count, 4)
+        XCTAssertTrue(type(of: toolbars.first!) == JSBToolbar.self)
+    }
+    
+    func test_initAPI_incorrect() {
+        let toolbars = [
+            JSBToolbar(title: self.title,
+                       done: self.done,
+                       doneAction: {},
+                       cancelAction: {},
+                       deleteAction: {}),
+            JSBToolbar(title: self.title,
+                       done: self.done,
+                       delete: self.delete,
+                       doneAction: {},
+                       cancelAction: {}),
+            JSBToolbar(title: self.title,
+                       done: self.done,
+                       delete: self.delete,
+                       doneAction: {},
+                       cancelAction: {}),
+        ]
+        XCTAssertEqual(toolbars.count, 3)
+        XCTAssertTrue(type(of: toolbars.first!) == JSBToolbar.self)
+    }
 }
