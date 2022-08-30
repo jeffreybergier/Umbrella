@@ -30,7 +30,7 @@ import PackageDescription
 let package = Package(
     name: "Umbrella",
     platforms: [
-        .macOS(.v12), .iOS(.v15), .watchOS(.v8), .tvOS(.v15)
+        .macOS(.v12), .iOS(.v15), .watchOS(.v8), .tvOS(.v15), .macCatalyst(.v15)
     ],
     products: [
         .library(
