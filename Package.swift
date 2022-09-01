@@ -43,10 +43,10 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/apple/swift-collections.git",
-            .upToNextMajor(from: "1.0.0")
-        )
+        .package(url: "https://github.com/apple/swift-collections.git",
+                 .upToNextMajor(from: "1.0.0")),
+        .package(url: "https://github.com/nalexn/ViewInspector",
+                 .upToNextMajor(from: "0.0.0")),
     ],
     targets: [
         .target(
@@ -63,7 +63,7 @@ let package = Package(
         ),
         .testTarget(
             name: "UmbrellaTests",
-            dependencies: ["Umbrella", "TestUmbrella"],
+            dependencies: ["Umbrella", "TestUmbrella", "ViewInspector"],
             path: "Tests/UmbrellaTests"
         ),
     ]

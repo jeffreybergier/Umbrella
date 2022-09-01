@@ -27,10 +27,11 @@
 import XCTest
 import SwiftUI
 import TestUmbrella
+import ViewInspector
 @testable import Umbrella
 
-// TODO: Test the views directly
-// https://betterprogramming.pub/how-to-test-swiftui-views-smartly-6c6b13f9edb1?gi=250441c8efc
+extension JSBToolbar: Inspectable {}
+
 class JSBToolbar_Tests: AsyncTestCase {
     
     let title  = "Hello World"
@@ -89,52 +90,26 @@ class JSBToolbar_Tests: AsyncTestCase {
         self.wait(for: .instant)
     }
     
-    func test_initAPI_correct() {
-        let toolbars = [
-            JSBToolbar(title: self.title,
-                       done: self.done,
-                       cancel: self.cancel,
-                       delete: self.delete,
-                       doneAction: {},
-                       cancelAction: {},
-                       deleteAction: {}),
-            JSBToolbar(title: self.title,
-                       done: self.done,
-                       doneAction: {}),
-            JSBToolbar(title: self.title,
-                       done: self.done,
-                       cancel: self.cancel,
-                       doneAction: {},
-                       cancelAction: {}),
-            JSBToolbar(title: self.title,
-                       done: self.done,
-                       delete: self.delete,
-                       doneAction: {},
-                       deleteAction: {}),
-        ]
-        XCTAssertEqual(toolbars.count, 4)
-        XCTAssertTrue(type(of: toolbars.first!) == JSBToolbar.self)
-    }
-    
-    func test_initAPI_incorrect() {
-        let toolbars = [
-            JSBToolbar(title: self.title,
-                       done: self.done,
-                       doneAction: {},
-                       cancelAction: {},
-                       deleteAction: {}),
-            JSBToolbar(title: self.title,
-                       done: self.done,
-                       delete: self.delete,
-                       doneAction: {},
-                       cancelAction: {}),
-            JSBToolbar(title: self.title,
-                       done: self.done,
-                       delete: self.delete,
-                       doneAction: {},
-                       cancelAction: {}),
-        ]
-        XCTAssertEqual(toolbars.count, 3)
-        XCTAssertTrue(type(of: toolbars.first!) == JSBToolbar.self)
+    func test_labelText() throws {
+        let closure = { }
+        let toolbar = JSBToolbar(title: self.title,
+                                 done: self.done,
+                                 cancel: self.cancel,
+                                 delete: self.delete,
+                                 doneAction: closure,
+                                 cancelAction: closure,
+                                 deleteAction: closure)
+        // TODO: Try to find title label
+        let doneButton = try toolbar.inspect().find(button: self.done.title)
+        let cancelButton = try toolbar.inspect().find(button: self.cancel.title)
+        let deleteButton = try? toolbar.inspect().find(button: self.delete.title)
+        XCTAssertNil(deleteButton)
+        
+        // TODO: Detect accessibility hint
+        // XCTAssertEqual(try doneButton.accessibilityHint(), self.done.hint)
+        
+        // TODO: Detect button bold
+        
+        // TODO: Activate buttons
     }
 }
