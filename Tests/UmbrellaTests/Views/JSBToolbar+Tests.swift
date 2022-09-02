@@ -90,26 +90,94 @@ class JSBToolbar_Tests: AsyncTestCase {
         self.wait(for: .instant)
     }
     
-    func test_labelText() throws {
-        let closure = { }
+    func test_doneOnly() throws {
+        let wait = self.newWait(count: 1)
+        let done = { wait(nil) }
+        let toolbar = JSBToolbar(title: self.title,
+                                 done: self.done,
+                                 doneAction: done)
+        // TODO: Try to find title label
+        let doneButton = try toolbar.inspect().find(button: self.done.title)
+        XCTAssertNil(try? toolbar.inspect().find(button: self.cancel.title))
+        XCTAssertNil(try? toolbar.inspect().find(button: self.delete.title))
+        
+        // TODO: Detect button bold
+        // Not available yet in library
+        // XCTAssertTrue(doneButton.environment(\.bold))
+        // XCTAssertFalse(cancelButton.environment(\.bold))
+        
+        // TODO: Confirm Title
+        // Not available in library yet
+        // XCTAssertEqual(try toolbar.inspect().navigationTitle(), self.title)
+
+        // Activate buttons
+        XCTAssertFalse(doneButton.isDisabled())
+        try doneButton.tap()
+        self.wait(for: .instant)
+    }
+    
+    func test_doneCancel() throws {
+        let wait = self.newWait(count: 2)
+        let done = { wait(nil) }
+        let cancel = { wait(nil) }
+        let delete = { wait(nil) }
         let toolbar = JSBToolbar(title: self.title,
                                  done: self.done,
                                  cancel: self.cancel,
                                  delete: self.delete,
-                                 doneAction: closure,
-                                 cancelAction: closure,
-                                 deleteAction: closure)
+                                 doneAction: done,
+                                 cancelAction: cancel,
+                                 deleteAction: delete)
         // TODO: Try to find title label
         let doneButton = try toolbar.inspect().find(button: self.done.title)
         let cancelButton = try toolbar.inspect().find(button: self.cancel.title)
-        let deleteButton = try? toolbar.inspect().find(button: self.delete.title)
-        XCTAssertNil(deleteButton)
-        
-        // TODO: Detect accessibility hint
-        // XCTAssertEqual(try doneButton.accessibilityHint(), self.done.hint)
+        XCTAssertNil(try? toolbar.inspect().find(button: self.delete.title))
         
         // TODO: Detect button bold
+        // Not available yet in library
+        // XCTAssertTrue(doneButton.environment(\.bold))
+        // XCTAssertFalse(cancelButton.environment(\.bold))
         
-        // TODO: Activate buttons
+        // TODO: Confirm Title
+        // Not available in library yet
+        // XCTAssertEqual(try toolbar.inspect().navigationTitle(), self.title)
+
+        // Activate buttons
+        XCTAssertFalse(doneButton.isDisabled())
+        XCTAssertFalse(cancelButton.isDisabled())
+        try doneButton.tap()
+        try cancelButton.tap()
+        self.wait(for: .instant)
+    }
+    
+    func test_doneDelete() throws {
+        let wait = self.newWait(count: 2)
+        let done = { wait(nil) }
+        let delete = { wait(nil) }
+        let toolbar = JSBToolbar(title: self.title,
+                                 done: self.done,
+                                 delete: self.delete,
+                                 doneAction: done,
+                                 deleteAction: delete)
+        // TODO: Try to find title label
+        let doneButton = try toolbar.inspect().find(button: self.done.title)
+        let deleteButton = try toolbar.inspect().find(button: self.delete.title)
+        XCTAssertNil(try? toolbar.inspect().find(button: self.cancel.title))
+        
+        // TODO: Detect button bold
+        // Not available yet in library
+        // XCTAssertTrue(doneButton.environment(\.bold))
+        // XCTAssertFalse(cancelButton.environment(\.bold))
+        
+        // TODO: Confirm Title
+        // Not available in library yet
+        // XCTAssertEqual(try toolbar.inspect().navigationTitle(), self.title)
+
+        // Activate buttons
+        XCTAssertFalse(doneButton.isDisabled())
+        XCTAssertFalse(deleteButton.isDisabled())
+        try doneButton.tap()
+        try deleteButton.tap()
+        self.wait(for: .instant)
     }
 }
