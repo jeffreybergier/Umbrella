@@ -31,6 +31,7 @@ import ViewInspector
 @testable import Umbrella
 
 extension JSBToolbar: Inspectable {}
+extension JSBToolbarButtonDone: Inspectable {}
 
 class JSBToolbar_Tests: AsyncTestCase {
     

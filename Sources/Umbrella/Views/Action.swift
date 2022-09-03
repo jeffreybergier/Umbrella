@@ -121,7 +121,7 @@ public struct ActionLocalization {
     }
 }
 
-public enum ActionLabelImage {
+public enum ActionLabelImage: Equatable {
     case system(String)
     case custom(Image)
     public var image: Image {

@@ -30,6 +30,44 @@ import ViewInspector
 import Umbrella
 
 class Action_Tests: XCTestCase {
+    
+    let locale = ActionLocalization(title: "aTitle",
+                                    hint: "aHint",
+                                    image: .system("xmark"),
+                                    shortcut: .init("a"))
+    let style = ActionStyleImp(buttonRole: .destructive,
+                               labelStyle: TitleAndIconLabelStyle(),
+                               outerModifier: TEST_OuterModifier(),
+                               innerModifier: TEST_InnerModifier())
+    
+    func test_label() throws {
+        let label = self.style.action(text: self.locale).label
+        _ = try label.inspect().find(text: self.locale.title)
+        _ = try label.inspect().find(text: TEST_OuterModifier.text)
+        _ = try label.inspect().find(text: TEST_InnerModifier.text)
+        // TODO: Find image
+    }
+    
+    func test_localization_init() {
+        _ = {
+            let l = ActionLocalization(title: "aTitle",
+                                       hint: "aHint",
+                                       image: .system("xmark"),
+                                       shortcut: .init("a"))
+            XCTAssertEqual(l.title, "aTitle")
+            XCTAssertEqual(l.hint, "aHint")
+            XCTAssertEqual(l.image, .system("xmark"))
+            XCTAssertEqual(l.shortcut, .init("a"))
+        }()
+        _ = {
+            let l = ActionLocalization(title: "aTitle")
+            XCTAssertEqual(l.title, "aTitle")
+            XCTAssertNil(l.hint)
+            XCTAssertNil(l.image)
+            XCTAssertNil(l.shortcut)
+        }()
+    }
+    
     func test_style_init() {
         _ = {
             let s = ActionStyleImp()
@@ -109,14 +147,22 @@ class Action_Tests: XCTestCase {
     }
 }
 
-struct TEST_InnerModifier: SwiftUI.ViewModifier {
+struct TEST_InnerModifier: ViewModifier, Inspectable {
+    static let text = "InnerModifier"
     func body(content: Self.Content) -> some View {
-        content
+        VStack {
+            content
+            Text(type(of: self).text)
+        }
     }
 }
 
-struct TEST_OuterModifier: SwiftUI.ViewModifier {
+struct TEST_OuterModifier: ViewModifier, Inspectable {
+    static let text = "OuterModifier"
     func body(content: Self.Content) -> some View {
-        content
+        HStack {
+            Text(type(of: self).text)
+            content
+        }
     }
 }
