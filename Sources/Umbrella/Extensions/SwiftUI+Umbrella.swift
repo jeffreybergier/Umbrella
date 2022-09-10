@@ -119,13 +119,10 @@ public struct JSBEditMode: DynamicProperty {
 @propertyWrapper
 public struct JSBSizeClass: DynamicProperty {
     
-    public struct Value {
-        public var horizontal: SizeClassValue
-        public var vertical: SizeClassValue
-    }
+    public typealias Tuple = (horizontal: Value, vertical: Value)
     
-    public enum SizeClassValue: Int, Hashable, Codable {
-        case compact, regular
+    public enum Value: Int, Hashable, Codable {
+        case tiny, compact, regular
     }
     
     public init() {}
@@ -134,19 +131,17 @@ public struct JSBSizeClass: DynamicProperty {
     @Environment(\.horizontalSizeClass) private var horizontal
     @Environment(\.verticalSizeClass) private var vertical
     
-    public var wrappedValue: Value {
-        .init(
-            horizontal: self.horizontal == .compact ? .compact : .regular,
-            vertical: self.vertical == .compact ? .compact : .regular
-        )
+    public var wrappedValue: Tuple {
+        (horizontal: self.horizontal == .compact ? .compact : .regular,
+         vertical: self.vertical == .compact ? .compact : .regular)
     }
     #elseif os(watchOS)
     public var wrappedValue: Value {
-        .init(horizontal: .compact, vertical: .compact)
+        (horizontal: .tiny, vertical: .tiny)
     }
     #else
     public var wrappedValue: Value {
-        .init(horizontal: .regular, vertical: .regular)
+        (horizontal: .regular, vertical: .regular)
     }
     #endif
 }
