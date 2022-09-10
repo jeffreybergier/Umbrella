@@ -31,8 +31,8 @@ import Foundation
 /// Identity means nothing here. But this is useful when using
 /// View.sheet/.alert/.popover with an item that is not identifiable
 public struct IdentBox<Value>: Identifiable {
-    public var id = UUID()
-    public var value: Value
+    public let id = UUID()
+    public let value: Value
     public init(_ value: Value) {
         self.value = value
     }
