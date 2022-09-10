@@ -136,11 +136,11 @@ public struct JSBSizeClass: DynamicProperty {
          vertical: self.vertical == .compact ? .compact : .regular)
     }
     #elseif os(watchOS)
-    public var wrappedValue: Value {
+    public var wrappedValue: Tuple {
         (horizontal: .tiny, vertical: .tiny)
     }
     #else
-    public var wrappedValue: Value {
+    public var wrappedValue: Tuple {
         (horizontal: .regular, vertical: .regular)
     }
     #endif
