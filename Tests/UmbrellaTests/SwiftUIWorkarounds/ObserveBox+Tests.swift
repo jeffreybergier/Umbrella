@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/03/08.
+//  Created by Jeffrey Bergier on 2022/09/10.
 //
 //  MIT License
 //
@@ -24,30 +24,27 @@
 //  SOFTWARE.
 //
 
+import XCTest
+import TestUmbrella
 import Combine
-import Foundation
+import Umbrella
 
-/// Takes any value and puts it into a box that is `ObservableObject`.
-/// DOES fire `objectWillChange` signal when value is set.
-/// Also makes it `Identifiable` if the value is `Identifiable`.
-public class ObserveBox<Value>: ObservableObject {
+class ObserveBox_Tests: AsyncTestCase {
     
-    public let objectWillChange = ObservableObjectPublisher()
-    public let objectDidChange = ObservableObjectPublisher()
+    var observe = Set<AnyCancellable>()
     
-    public var value: Value {
-        willSet { self.objectWillChange.send() }
-        didSet { self.objectDidChange.send() }
+    func test_yes_publish() {
+        let wait = self.newWait(count: 2)
+        let box = ObserveBox(0)
+        XCTAssertEqual(box.value, 0)
+        box.objectWillChange.sink { _ in
+            wait { XCTAssertEqual(box.value, 0) }
+        }.store(in: &self.observe)
+        box.objectDidChange.sink { _ in
+            wait { XCTAssertEqual(box.value, 1) }
+        }.store(in: &self.observe)
+        box.value = 1
+        self.wait(for: .instant)
     }
     
-    public init(_ value: Value) {
-        self.value = value
-    }
 }
-
-extension ObserveBox: Identifiable where Value: Identifiable {
-    public var id: Value.ID {
-        return self.value.id
-    }
-}
-
