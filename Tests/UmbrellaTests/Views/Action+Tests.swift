@@ -25,11 +25,12 @@
 //
 
 import XCTest
+import TestUmbrella
 import SwiftUI
 import ViewInspector
 import Umbrella
 
-class Action_Tests: XCTestCase {
+class Action_Tests: AsyncTestCase {
     
     let locale = ActionLocalization(title: "aTitle",
                                     hint: "aHint",
@@ -46,6 +47,66 @@ class Action_Tests: XCTestCase {
         _ = try label.inspect().find(text: TEST_OuterModifier.text)
         _ = try label.inspect().find(text: TEST_InnerModifier.text)
         // TODO: Find image
+        // TODO: Find accessibility label
+    }
+    
+    func test_button() throws {
+        let button = self.style.action(text: self.locale).button { }
+        _ = try button.inspect().find(text: self.locale.title)
+        _ = try button.inspect().find(text: TEST_OuterModifier.text)
+        _ = try button.inspect().find(text: TEST_InnerModifier.text)
+        // TODO: Find image
+        // TODO: Find accessibility label
+    }
+    
+    func test_button_enabled() throws {
+        let wait = self.newWait(count: 4)
+        _ = try {
+            let b = self.style.action(text: self.locale).button { wait(nil) }
+            try b.inspect().button().tap()
+            XCTAssertFalse(try b.inspect().isDisabled())
+        }()
+        _ = try {
+            let b = self.style.action(text: self.locale).button(isEnabled: false) { wait(nil) }
+            XCTAssertNil(try? b.inspect().button().tap())
+            XCTAssertTrue(try b.inspect().isDisabled())
+        }()
+        _ = try {
+            let b = self.style.action(text: self.locale).button(isEnabled: true) { wait(nil) }
+            try b.inspect().button().tap()
+            XCTAssertFalse(try b.inspect().isDisabled())
+        }()
+        _ = try {
+            let nothing: String? = nil
+            let b = self.style.action(text: self.locale).button(item: nothing) { _ in wait(nil) }
+            XCTAssertNil(try? b.inspect().button().tap())
+            XCTAssertTrue(try b.inspect().isDisabled())
+        }()
+        _ = try {
+            let something: String? = "-1"
+            let b = self.style.action(text: self.locale).button(item: something) { inner in
+                wait { XCTAssertEqual(something, inner) }
+            }
+            try b.inspect().button().tap()
+            XCTAssertFalse(try b.inspect().isDisabled())
+        }()
+        _ = try {
+            let empty: [String] = []
+            let b = self.style.action(text: self.locale).button(items: empty) { inner in
+                wait { XCTAssertEqual(empty, inner) }
+            }
+            XCTAssertNil(try? b.inspect().button().tap())
+            XCTAssertTrue(try b.inspect().isDisabled())
+        }()
+        _ = try {
+            let full: [String] = [""]
+            let b = self.style.action(text: self.locale).button(items: full) { inner in
+                wait { XCTAssertEqual(full, inner) }
+            }
+            try b.inspect().button().tap()
+            XCTAssertFalse(try b.inspect().isDisabled())
+        }()
+        self.wait(for: .instant)
     }
     
     func test_localization_init() {
