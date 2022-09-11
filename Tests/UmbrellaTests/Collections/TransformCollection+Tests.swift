@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2022/01/16.
+//  Created by Jeffrey Bergier on 2022/09/11.
 //
 //  MIT License
 //
@@ -24,36 +24,33 @@
 //  SOFTWARE.
 //
 
-import SwiftUI
+import XCTest
+import TestUmbrella
+import Umbrella
 
-public struct JSBAlert<P, A: View, M: View, T: StringProtocol>: ViewModifier {
-    @Binding private var isPresented: Bool
-    private var titleKey: T
-    private var presenting: P?
-    private var actions: (P) -> A
-    private var message: (P) -> M
-    public init(item: Binding<P?>,
-                titleKey: T,
-                @ViewBuilder message: @escaping (P) -> M,
-                @ViewBuilder actions: @escaping (P) -> A)
-    {
-        self.titleKey = titleKey
-        self.actions = actions
-        self.message = message
-        self.presenting = item.wrappedValue
-        _isPresented = Binding {
-            item.wrappedValue != nil
-        } set: { newValue in
-            guard newValue == false else { return }
-            item.wrappedValue = nil
+class TransformCollection_Tests: AsyncTestCase {
+    
+    func test_transform() {
+        let c = [1,2,3,4,5,6]
+        let t = TransformCollection(collection: c, transform: { $0 * 2 })
+        XCTAssertEqual(t[0], 2)
+        XCTAssertEqual(t[1], 4)
+        XCTAssertEqual(t[2], 6)
+        XCTAssertEqual(t[3], 8)
+        XCTAssertEqual(t[4], 10)
+        XCTAssertEqual(t[5], 12)
+    }
+    
+    func test_lazy() {
+        let c = [1,2,3,4,5,6]
+        let wait = self.newWait(count: 2)
+        let t = TransformCollection(collection: c) {
+            wait(nil)
+            return $0 * 2
         }
+        XCTAssertEqual(t[1], 4)
+        XCTAssertEqual(t[4], 10)
+        self.wait(for: .instant)
     }
-    public func body(content: Content) -> some View {
-        content
-            .alert(self.titleKey,
-                   isPresented: self.$isPresented,
-                   presenting: self.presenting,
-                   actions: self.actions,
-                   message: self.message)
-    }
+    
 }

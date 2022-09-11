@@ -27,8 +27,6 @@
 import SwiftUI
 import Collections
 
-public typealias ErrorQueue = EnvironmentQueue<UserFacingError>
-
 /// Makes it easy to add a queue of errors to your application. Add a `Environment`
 /// into your environment at the top level of your application. Then use this property wrapper
 /// so that any view can access the error queue. If the property is NIL there are no errors in the
@@ -47,6 +45,7 @@ public struct EnvironmentQueue<T>: DynamicProperty {
         return ObserveBox(Deque<T>())
     }
     
+    @available(*, deprecated, message: "Is this used?")
     public static func legacyBinding(_ environment: Environment) -> Binding<T?> {
         Binding {
             environment.value.first
