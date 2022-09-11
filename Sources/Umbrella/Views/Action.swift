@@ -139,7 +139,7 @@ extension Action {
         return self.raw_label()
             .modifier(self.style.outerModifier)
             .accessibilityLabel(self.localization.title)
-            .if(self.localization.hint) {
+            .if(value: self.localization.hint) {
                 $0.accessibilityHint($1)
             }
     }
@@ -213,11 +213,11 @@ extension Action {
     
     private func raw_button(action: @escaping () -> Void) -> some View {
         Button(action: action, label: self.raw_label)
-            .if(self.localization.shortcut) {
+            .if(value: self.localization.shortcut) {
                 $0.keyboardShortcut($1)
             }
             .accessibilityLabel(self.localization.title)
-            .if(self.localization.hint) {
+            .if(value: self.localization.hint) {
                 $0.accessibilityHint($1)
             }
             .modifier(self.style.outerModifier)
