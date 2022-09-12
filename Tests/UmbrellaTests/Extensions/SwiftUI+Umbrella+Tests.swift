@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2022/09/10.
+//  Created by Jeffrey Bergier on 2022/09/12.
 //
 //  MIT License
 //
@@ -25,38 +25,37 @@
 //
 
 import XCTest
+import TestUmbrella
+import ViewInspector
+import SwiftUI
 import Umbrella
 
-class Swift_Umbrella_Tests: XCTestCase {
-
-    func test_result_success() {
-        let r: Result<String, Error> = .success("-1")
-        XCTAssertEqual(r.value, "-1")
-        XCTAssertNil(r.error)
-    }
+class SwiftUI_Umbrella_Tests: AsyncTestCase {
     
-    func test_result_failure() {
-        let error = NSError(domain: "test", code: -1)
-        let r: Result<String, NSError> = .failure(error)
-        XCTAssertNil(r.value)
-        XCTAssertEqual(r.error?.domain, "test")
-        XCTAssertEqual(r.error?.code, -1)
-    }
-    
-    func test_result_reduce() {
-        let r1: Result<String, NSError> = .success("-1")
-        let r2 = r1.reduce {
-            XCTAssertEqual($0, "-1")
-            return .success("-3")
+    func test_onLoadChange_sync() throws {
+        let wait = self.newWait()
+        let value = "String"
+        let v = Color.clear.onLoadChange(of: value, async: false) { newValue in
+            wait {
+                XCTAssertEqual(newValue, value)
+            }
         }
-        let r3 = r2.reduce {
-            XCTAssertEqual($0, "-3")
-            let output: Result<Int, NSError> = .failure(NSError(domain: "test", code: -5))
-            return output
-        }
-        XCTAssertEqual(r2.value, "-3")
-        XCTAssertEqual(r3.error?.domain, "test")
-        XCTAssertEqual(r3.error?.code, -5)
+        try v.inspect().callOnAppear()
+        self.wait(for: .instant)
     }
     
+    /*
+    // TODO: Fix when ViewInspector supports calling Task
+    func test_onLoadChange_async() throws {
+        let wait = self.newWait()
+        let value = "String"
+        let v = Color.clear.onLoadChange(of: value, async: true) { newValue in
+            wait {
+                XCTAssertEqual(newValue, value)
+            }
+        }
+        try v.inspect().callTask()
+        self.wait(for: .instant)
+    }
+    */
 }

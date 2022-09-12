@@ -215,9 +215,24 @@ extension View {
 // MARK: State Management Helpers
 
 extension View {
-    /// Performs `.onChange` but also performs on initial load via `.onAppear` modifier
-    public func onLoadChange<T: Equatable>(of change: T, perform: @escaping (T) -> Void) -> some View {
-        self.onChange(of: change, perform: perform)
-            .onAppear { perform(change) }
+    /// Performs `.onChange` but also performs on initial load. If `async` is set to `YES`,
+    /// then the `task` closure is used to perform the initual work. If `async` is set to `NO`,
+    /// the initial work is performed in the `onAppear` closure. This will be called any time
+    /// the view appears. There is no logic to detect only first appear.
+    /// - Parameters:
+    ///   - value: Equatable value to watch for changes
+    ///   - async: use async to allow the view to appear before performing the initial work
+    ///   - perform: closure to perform on load and change
+    public func onLoadChange<T: Equatable>(of value: T,
+                                           async: Bool = false,
+                                           perform: @escaping (T) -> Void)
+                                           -> some View
+    {
+        self.onChange(of: value, perform: perform)
+            .if(bool: async) {
+                $0.task { DispatchQueue.main.async { perform(value) }}
+            } else: {
+                $0.onAppear { perform(value) }
+            }
     }
 }
