@@ -27,6 +27,55 @@
 import SwiftUI
 
 @propertyWrapper
+public struct JSBCodableFileStorage<Value: Codable>: DynamicProperty {
+    
+    public typealias OnError = (Error) -> Void
+    
+    @JSBFileStorage private var storage: Data?
+    @StateObject private var onError: SecretBox<OnError?>
+    
+    public init(url: URL, onError: OnError? = nil) {
+        _storage = .init(url: url, onError: onError)
+        _onError = .init(wrappedValue: .init(onError))
+    }
+    
+    public var wrappedValue: Value? {
+        get { self.read() }
+        nonmutating set { self.write(newValue) }
+    }
+    
+    public var projectedValue: Binding<Value?> {
+        Binding {
+            self.wrappedValue
+        } set: {
+            self.wrappedValue = $0
+        }
+    }
+    
+    // MARK: Encoding / Decoding
+    
+    // Not sure if storing these helps performance
+    @State private var encoder = PropertyListEncoder()
+    @State private var decoder = PropertyListDecoder()
+    
+    // Not sure if cache actually helps performance
+    @State private var cache: [Data: Value] = [:]
+    
+    private func read() -> Value? {
+        guard let data = self.storage else { return nil }
+        if let cache = self.cache[data] { return cache }
+        return try? self.decoder.decode(Value.self, from: data)
+    }
+    
+    private func write(_ newValue: Value?) {
+        let _data = try? self.encoder.encode(newValue)
+        self.storage = _data
+        guard let data = _data else { return }
+        self.cache[data] = newValue
+    }
+}
+
+@propertyWrapper
 public struct JSBFileStorage: DynamicProperty {
     
     public typealias OnError = (Error) -> Void
@@ -154,3 +203,74 @@ extension NSFileCoordinator {
         }
     }
 }
+
+// MARK: Tests
+/*
+Add these to your test suite if you like
+
+import XCTest
+import TestUmbrella
+@testable import Umbrella
+
+import Combine
+import SwiftUI
+
+class JSBFileStorage_Tests: AsyncTestCase {
+    
+    lazy var presenter: JSBFileStoragePresenter = JSBFileStoragePresenter(presentedItemURL: self.url)
+    let testData = "\(Int.random(in: 1_000_000...9_999_999))".data(using: .utf8)!
+    let url: URL = URL(fileURLWithPath: NSTemporaryDirectory())
+                      .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
+                      .appendingPathComponent("aTestFile.txt")
+    
+    private var sinkBag: Set<AnyCancellable> = []
+    
+    func test_presenter_writeData() throws {
+        XCTAssertNil(self.presenter.data)
+        try self.presenter.update(self.testData)
+        XCTAssertEqual(self.presenter.data!, self.testData)
+    }
+    
+    func test_presenter_writeDataThenNIL() throws {
+        XCTAssertNil(self.presenter.data)
+        try self.presenter.update(self.testData)
+        XCTAssertEqual(self.presenter.data!, self.testData)
+        try self.presenter.update(nil)
+        XCTAssertNil(self.presenter.data)
+    }
+    
+    func test_presenter_writeNIL() throws {
+        XCTAssertNil(self.presenter.data)
+        try self.presenter.update(nil)
+        XCTAssertNil(self.presenter.data)
+    }
+    
+    func test_presenter_publish_data() throws {
+        let wait = self.newWait(count: 2)
+        self.presenter.objectWillChange.sink { _ in
+            wait { XCTAssertNil(self.presenter.data) }
+            DispatchQueue.main.async { wait {
+                XCTAssertEqual(self.presenter.data!, self.testData)
+            }}
+        }.store(in: &self.sinkBag)
+        
+        try self.presenter.update(self.testData)
+        self.wait(for: .short)
+    }
+    
+    func test_property_error() throws {
+        let wait = self.newWait()
+        let invalidURL = URL(string: NSTemporaryDirectory())!
+        let property = JSBFileStorage(url: invalidURL) { error in
+            let error = error as NSError
+            wait {
+                XCTAssertEqual(error.domain, NSCocoaErrorDomain)
+                XCTAssertEqual(error.code, 518)
+            }
+        }
+        property.wrappedValue = self.testData
+        self.wait(for: .short)
+    }
+}
+
+*/
