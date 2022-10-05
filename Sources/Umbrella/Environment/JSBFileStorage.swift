@@ -73,7 +73,7 @@ internal class JSBFileStoragePresenter: NSObject, NSFilePresenter, ObservableObj
         NSFileCoordinator.addFilePresenter(self)
     }
     
-    internal func presentedItemDidChange() {
+    @objc internal func presentedItemDidChange() {
         guard let presentedItemURL else { return }
         try? NSFileCoordinator(filePresenter: self).jsb_coordinate(readingItemAt: presentedItemURL)
         { presentedItemURL in
