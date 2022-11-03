@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.7.0
 //
 //  Created by Jeffrey Bergier on 2021/02/23.
 //
@@ -30,7 +30,7 @@ import PackageDescription
 let package = Package(
     name: "Umbrella",
     platforms: [
-        .macOS(.v10_15), .iOS(.v13)
+        .macOS(.v12), .iOS(.v15), .watchOS(.v8), .tvOS(.v15), .macCatalyst(.v15)
     ],
     products: [
         .library(
@@ -43,16 +43,17 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(
-            name: "ServerlessLogger",
-            url: "https://github.com/jeffreybergier/JSBServerlessLogger.git",
-            .branch("master")
-        )
+        .package(url: "https://github.com/apple/swift-collections.git",
+                 .upToNextMajor(from: "1.0.0")),
+        .package(url: "https://github.com/nalexn/ViewInspector",
+                 .upToNextMajor(from: "0.0.0")),
     ],
     targets: [
         .target(
             name: "Umbrella",
-            dependencies: ["ServerlessLogger"],
+            dependencies: [
+                .product(name: "Collections", package: "swift-collections")
+            ],
             path: "Sources/Umbrella"
         ),
         .target(
@@ -62,7 +63,7 @@ let package = Package(
         ),
         .testTarget(
             name: "UmbrellaTests",
-            dependencies: ["Umbrella", "TestUmbrella"],
+            dependencies: ["Umbrella", "TestUmbrella", "ViewInspector"],
             path: "Tests/UmbrellaTests"
         ),
     ]

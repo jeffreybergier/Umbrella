@@ -26,6 +26,7 @@
 
 import Combine
 import CoreData
+import Collections
 
 /// Represents the progress of something that is long running and can produce
 /// errors upon startup and errors while running. I use this to reflect the status
@@ -33,42 +34,65 @@ import CoreData
 /// many types of long-running / background processes.
 /// Use `AnyContinousProgress` to get around AssociatedType compile errors.
 public protocol ContinousProgress: ObservableObject {
-    /// Fixed error that only occurs on startup and doesn't change
-    /// for the lifetime of the process.
-    var initializeError: UserFacingError? { get }
+    associatedtype Error: Swift.Error
     var progress: Progress { get }
     /// When an error occurs, append it to the Queue.
-    var errorQ: ErrorQueue { get set }
+    var errors: Deque<Error> { get set }
 }
 
-public class AnyContinousProgress: ContinousProgress {
+public enum CPError: CustomNSError {
+    case accountStatus(CPAccountStatus)
+    case sync(NSError?)
     
-    public let objectWillChange: ObservableObjectPublisher
-    public var initializeError: UserFacingError? { _initializeError() }
-    public var progress: Progress { _progress() }
-    public var errorQ: ErrorQueue {
-        get { _errorQ_get() }
-        set { _errorQ_set(newValue) }
+    public var errorCode: Int {
+        switch self {
+        case .accountStatus:
+            return 1001
+        case .sync:
+            return 1002
+        }
     }
     
-    private var _initializeError: () -> UserFacingError?
-    private var _progress: () -> Progress
-    private var _errorQ_get: () -> ErrorQueue
-    private var _errorQ_set: (ErrorQueue) -> Void
+    public static var errorDomain: String {
+        "com.saturdayapps.Umbrella.ContinuousProgressError"
+    }
+}
+
+public class AnyContinousProgress<Error: Swift.Error>: ContinousProgress {
     
-    public init<T: ContinousProgress>(_ progress: T) where T.ObjectWillChangePublisher == ObservableObjectPublisher {
+    public let objectWillChange: ObservableObjectPublisher
+    public var progress: Progress { _progress() }
+    public var errors: Deque<Error> {
+        get { _errors_get() }
+        set { _errors_set(newValue) }
+    }
+    
+    private var _progress: () -> Progress
+    private var _errors_get: () -> Deque<Error>
+    private var _errors_set: (Deque<Error>) -> Void
+    
+    public init<T: ContinousProgress>(_ progress: T) where T.Error == Error,
+                T.ObjectWillChangePublisher == ObservableObjectPublisher
+     {
         self.objectWillChange = progress.objectWillChange
-        _initializeError      = { progress.initializeError }
         _progress             = { progress.progress }
-        _errorQ_get           = { progress.errorQ }
-        _errorQ_set           = { progress.errorQ = $0 }
+        _errors_get           = { progress.errors }
+        _errors_set           = { progress.errors = $0 }
     }
 }
 
 /// Use when you have no progress to report
 public class NoContinousProgress: ContinousProgress {
-    public let initializeError: UserFacingError? = nil
+    public let initializeError: Swift.Error? = nil
     public let progress: Progress = .init()
-    public var errorQ: ErrorQueue = .init()
+    public var errors: Deque<Swift.Error> = .init()
     public init() {}
+}
+
+public enum CPAccountStatus: Int {
+    case couldNotDetermine = 0
+    case available = 1
+    case restricted = 2
+    case noAccount = 3
+    case temporarilyUnavailable = 4
 }

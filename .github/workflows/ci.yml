@@ -1,5 +1,4 @@
-name: "Build and Test"
-
+name: "Automatic: Unit Tests: Xcode 14, iOS 16, macOS 13"
 on:
   push:
     branches: [ "main" ]
@@ -7,16 +6,16 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  run_tests:
     runs-on: macos-12
-
+    name: "Xcode 14: Execute Unit Tests"
     steps:
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '14.0-beta'
     - uses: actions/checkout@v3
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+    - name: "Xcode Select"
+      run: sudo xcode-select -switch /Applications/Xcode_14.1.app && /usr/bin/xcodebuild -version
+    - name: "macOS 13"
+      run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.0 -destination "platform=macOS,arch=x86_64"
+    - name: "macOS 13 (Mac Catalyst)"
+      run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.0 -destination "platform=macOS,arch=x86_64,variant=Mac Catalyst"
+    - name: "iOS 16"
+      run: xcodebuild test -scheme Umbrella-Package -sdk iphonesimulator16.1 -destination "OS=16.1,name=iPhone 8"

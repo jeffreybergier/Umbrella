@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: "Xcode Select"
-      run: sudo xcode-select -switch /Applications/Xcode_14.0.app && /usr/bin/xcodebuild -version
+      run: sudo xcode-select -switch /Applications/Xcode_14.1.app && /usr/bin/xcodebuild -version
     - name: "Download watchOS 9 and tvOS 16"
       run: xcodebuild -downloadAllPlatforms
     - name: "watchOS 9"
