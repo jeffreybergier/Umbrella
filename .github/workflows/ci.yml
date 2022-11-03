@@ -18,4 +18,4 @@ jobs:
     - name: "macOS 13 (Mac Catalyst)"
       run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.0 -destination "platform=macOS,arch=x86_64,variant=Mac Catalyst"
     - name: "iOS 16"
-      run: xcodebuild test -scheme Umbrella-Package -sdk iphonesimulator16.0 -destination "OS=16.0,name=iPhone 8"
+      run: xcodebuild test -scheme Umbrella-Package -sdk iphonesimulator16.1 -destination "OS=16.0,name=iPhone 8"
