@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: "Xcode Select"
-      run: sudo xcode-select -switch /Applications/Xcode_14.0.app && /usr/bin/xcodebuild -version
+      run: sudo xcode-select -switch /Applications/Xcode_14.1.app && /usr/bin/xcodebuild -version
     - name: "macOS 13"
       run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.0 -destination "platform=macOS,arch=x86_64"
     - name: "macOS 13 (Mac Catalyst)"
