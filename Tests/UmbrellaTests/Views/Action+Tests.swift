@@ -32,10 +32,10 @@ import Umbrella
 
 class Action_Tests: AsyncTestCase {
     
+    // TODO: Test keyboard shortcut when ViewInspector supports it
     let locale = ActionLocalization(title: "aTitle",
                                     hint: "aHint",
-                                    image: .system("xmark"),
-                                    shortcut: .init("a"))
+                                    image: .system("xmark"))
     let style = ActionStyleImp(buttonRole: .destructive,
                                labelStyle: TitleAndIconLabelStyle(),
                                outerModifier: TEST_OuterModifier(),
@@ -110,6 +110,16 @@ class Action_Tests: AsyncTestCase {
     }
     
     func test_localization_init() {
+        #if os(watchOS) || os (tvOS)
+        _ = {
+            let l = ActionLocalization(title: "aTitle",
+                                       hint: "aHint",
+                                       image: .system("xmark"))
+            XCTAssertEqual(l.title, "aTitle")
+            XCTAssertEqual(l.hint, "aHint")
+            XCTAssertEqual(l.image, .system("xmark"))
+        }()
+        #else
         _ = {
             let l = ActionLocalization(title: "aTitle",
                                        hint: "aHint",
@@ -120,12 +130,15 @@ class Action_Tests: AsyncTestCase {
             XCTAssertEqual(l.image, .system("xmark"))
             XCTAssertEqual(l.shortcut, .init("a"))
         }()
+        #endif
         _ = {
             let l = ActionLocalization(title: "aTitle")
             XCTAssertEqual(l.title, "aTitle")
             XCTAssertNil(l.hint)
             XCTAssertNil(l.image)
+            #if os(macOS) || os(iOS)
             XCTAssertNil(l.shortcut)
+            #endif
         }()
     }
     
