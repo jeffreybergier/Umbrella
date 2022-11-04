@@ -49,7 +49,7 @@ extension View {
         #endif
     }
     public func editMode(force: Bool) -> some View {
-        #if os(macOS)
+        #if os(macOS) || os(watchOS)
         self
         #else
         self.environment(\.editMode, .constant(force ? .active : .inactive))
@@ -85,6 +85,8 @@ public struct EnvironmentTintColor: EnvironmentKey {
     public static var defaultValue: Color = {
         #if os(macOS)
         Color(nsColor: NSColor.controlAccentColor)
+        #elseif os(watchOS)
+        Color(uiColor: WKApplication.shared().globalTintColor)
         #else
         Color(uiColor: UIColor.tintColor)
         #endif
@@ -104,7 +106,9 @@ public struct JSBEditMode: DynamicProperty {
     
     public init() {}
 
-    #if !os(macOS)
+    #if os(macOS) || os(watchOS)
+    public var wrappedValue: Bool { true }
+    #else
     @Environment(\.editMode) private var editMode
     public var wrappedValue: Bool {
         get { self.editMode?.wrappedValue.isEditing ?? false }
@@ -112,8 +116,6 @@ public struct JSBEditMode: DynamicProperty {
             self.editMode?.wrappedValue = newValue ? .active : .inactive
         }
     }
-    #else
-    public var wrappedValue: Bool { true }
     #endif
 }
 
@@ -182,9 +184,13 @@ extension View {
         @ViewBuilder content: @escaping (C) -> V
     ) -> some View
     {
+        #if os(watchOS)
+        return self.sheet(items: items, content: content, onDismiss: nil)
+        #else
         return self.popover(isPresented: items.isPresented) {
             content(items.wrappedValue)
         }
+        #endif
     }
     
     public func sheet<C: Collection & ExpressibleByArrayLiteral, V: View>(

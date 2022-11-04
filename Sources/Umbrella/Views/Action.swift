@@ -103,8 +103,13 @@ public struct ActionLocalization {
     public var title: LocalizedString
     /// Accessibility hint
     public var hint: LocalizedString?
+    /// Keyboard shortcut
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
     public var shortcut: KeyboardShortcut?
     
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
     public init(title: LocalizedString,
                 hint: LocalizedString? = nil,
                 image: ActionLabelImage? = nil,
@@ -114,6 +119,18 @@ public struct ActionLocalization {
         self.title = title
         self.hint = hint
         self.shortcut = shortcut
+    }
+    
+    @available(iOS, unavailable)
+    @available(macOS, unavailable)
+    @available(macCatalyst, unavailable)
+    public init(title: LocalizedString,
+                hint: LocalizedString? = nil,
+                image: ActionLabelImage? = nil)
+    {
+        self.image = image
+        self.title = title
+        self.hint = hint
     }
     
     public func action<S: ActionStyle>(style: S) -> some Action {
@@ -213,9 +230,9 @@ extension Action {
     
     private func raw_button(action: @escaping () -> Void) -> some View {
         Button(action: action, label: self.raw_label)
-            .if(value: self.localization.shortcut) {
-                $0.keyboardShortcut($1)
-            }
+        #if !os(watchOS) && !os(tvOS)
+            .keyboardShortcut(self.localization.shortcut)
+        #endif
             .accessibilityLabel(self.localization.title)
             .if(value: self.localization.hint) {
                 $0.accessibilityHint($1)

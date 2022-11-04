@@ -24,6 +24,7 @@
 //  SOFTWARE.
 //
 
+#if canImport(WebKit)
 import XCTest
 import TestUmbrella
 import WebKit
@@ -110,3 +111,4 @@ class GenericWebKitNavigationDelegate_Tests: AsyncTestCase {
     }
     
 }
+#endif

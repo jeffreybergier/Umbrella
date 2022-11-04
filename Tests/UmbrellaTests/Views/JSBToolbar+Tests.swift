@@ -36,18 +36,16 @@ extension JSBToolbarButtonDone: Inspectable {}
 class JSBToolbar_Tests: AsyncTestCase {
     
     let title  = "Hello World"
+    // TODO: Test keyboard shortcut when ViewInspector supports it
     let done   = ActionLocalization(title: "DoneDone",
                                     hint: "DoneHint",
-                                    image: .system("xmark"),
-                                    shortcut: .defaultAction)
+                                    image: .system("xmark"))
     let cancel = ActionLocalization(title: "CancelCancel",
                                     hint: "CancelHint",
-                                    image: .system("xmark"),
-                                    shortcut: .cancelAction)
+                                    image: .system("xmark"))
     let delete = ActionLocalization(title: "DeleteDelete",
                                     hint: "DeleteHint",
-                                    image: nil,
-                                    shortcut: nil)
+                                    image: nil)
     
     func test_baseStyles() {
         _ = {
