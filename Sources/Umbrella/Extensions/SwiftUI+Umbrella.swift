@@ -35,7 +35,7 @@ import AppKit
 
 extension View {
     public var navigationBarTitleDisplayModeInline: some View {
-        #if os(macOS)
+        #if os(macOS) || os(tvOS)
         self
         #else
         self.navigationBarTitleDisplayMode(.inline)
@@ -184,7 +184,7 @@ extension View {
         @ViewBuilder content: @escaping (C) -> V
     ) -> some View
     {
-        #if os(watchOS)
+        #if os(watchOS) || os(tvOS)
         return self.sheet(items: items, content: content, onDismiss: nil)
         #else
         return self.popover(isPresented: items.isPresented) {
