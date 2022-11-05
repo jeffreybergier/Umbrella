@@ -82,10 +82,10 @@ public class AnyContinousProgress<Error: Swift.Error>: ContinousProgress {
 }
 
 /// Use when you have no progress to report
-public class NoContinousProgress: ContinousProgress {
-    public let initializeError: Swift.Error? = nil
+public class NoContinousProgress<Error: Swift.Error>: ContinousProgress {
+    public let initializeError: Error? = nil
     public let progress: Progress = .init()
-    public var errors: Deque<Swift.Error> = .init()
+    public var errors: Deque<Error> = .init()
     public init() {}
 }
 
