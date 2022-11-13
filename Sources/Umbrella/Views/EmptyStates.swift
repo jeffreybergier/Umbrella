@@ -27,7 +27,6 @@
 import SwiftUI
 
 extension Collection {
-    
     @ViewBuilder
     public func view<Backup: View, Content: View>(
         @ViewBuilder content: @escaping (Self) -> Content,
@@ -39,6 +38,14 @@ extension Collection {
         } else {
             onEmpty()
         }
+    }
+    
+    @ViewBuilder
+    public func view<Content: View>(
+        @ViewBuilder content: @escaping (Self) -> Content
+    ) -> some View
+    {
+        self.view(content: content, onEmpty: {})
     }
 }
 
@@ -84,5 +91,32 @@ extension Optional {
         } else {
             onNIL()
         }
+    }
+    
+    @ViewBuilder
+    public func view<Content: View>(
+        @ViewBuilder content: @escaping (Wrapped) -> Content
+    ) -> some View
+    {
+        self.view(content: content, onNIL: {})
+    }
+    
+    @ViewBuilder
+    public func view<Content: View, O1>(
+        _ other1: O1?,
+        @ViewBuilder content: @escaping (Wrapped, O1) -> Content
+    ) -> some View
+    {
+        self.view(other1, content: content, onNIL: {})
+    }
+    
+    @ViewBuilder
+    public func view<Content: View, O1, O2>(
+        _ other1: O1?,
+        _ other2: O2?,
+        @ViewBuilder content: @escaping (Wrapped, O1, O2) -> Content
+    ) -> some View
+    {
+        self.view(other1, other2, content: content, onNIL: {})
     }
 }
