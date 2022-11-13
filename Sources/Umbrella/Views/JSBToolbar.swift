@@ -29,19 +29,19 @@ import SwiftUI
 public struct JSBToolbar: ViewModifier {
 
     private var title:  LocalizedString
-    private var done:   ActionLocalization
+    private var done:   ActionLocalization?
     private var cancel: ActionLocalization?
     private var delete: ActionLocalization?
     
-    public var actionDone:   () -> Void
+    public var actionDone:   (() -> Void)?
     public var actionCancel: (() -> Void)?
     public var actionDelete: (() -> Void)?
 
     public init(title:  LocalizedString,
-                done:   ActionLocalization,
+                done:   ActionLocalization? = nil,
                 cancel: ActionLocalization? = nil,
                 delete: ActionLocalization? = nil,
-                doneAction: @escaping () -> Void,
+                doneAction:   (() -> Void)? = nil,
                 cancelAction: (() -> Void)? = nil,
                 deleteAction: (() -> Void)? = nil)
     {
@@ -59,16 +59,21 @@ public struct JSBToolbar: ViewModifier {
             .navigationTitle(self.title)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    JSBToolbarButtonStyleDone
-                        .action(text: self.done)
-                        .button(action: self.actionDone)
+                    if let done {
+                        JSBToolbarButtonStyleDone
+                            .action(text: done)
+                            .button(item: self.actionDone, action: { $0() })
+                    }
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     if let cancel {
                         JSBToolbarButtonStyleCancel
                             .action(text: cancel)
                             .button(item: self.actionCancel, action: { $0() })
-                    } else if let delete {
+                    }
+                }
+                ToolbarItem(placement: .destructiveAction) {
+                    if let delete {
                         JSBToolbarButtonStyleDelete
                             .action(text: delete)
                             .button(item: self.actionDelete, action: { $0() })

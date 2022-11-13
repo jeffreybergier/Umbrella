@@ -83,7 +83,7 @@ class JSBToolbar_Tests: AsyncTestCase {
                                  doneAction: done,
                                  cancelAction: cancel,
                                  deleteAction: delete)
-        toolbar.actionDone()
+        toolbar.actionDone?()
         toolbar.actionCancel?()
         toolbar.actionDelete?()
         self.wait(for: .instant)
@@ -116,7 +116,7 @@ class JSBToolbar_Tests: AsyncTestCase {
     }
     
     func test_doneCancel() throws {
-        let wait = self.newWait(count: 2)
+        let wait = self.newWait(count: 3)
         let done = { wait(nil) }
         let cancel = { wait(nil) }
         let delete = { wait(nil) }
@@ -130,7 +130,7 @@ class JSBToolbar_Tests: AsyncTestCase {
         // TODO: Try to find title label
         let doneButton = try toolbar.inspect().find(button: self.done.title)
         let cancelButton = try toolbar.inspect().find(button: self.cancel.title)
-        XCTAssertNil(try? toolbar.inspect().find(button: self.delete.title))
+        let deleteButton = try toolbar.inspect().find(button: self.delete.title)
         
         // TODO: Detect button bold
         // Not available yet in library
@@ -144,8 +144,10 @@ class JSBToolbar_Tests: AsyncTestCase {
         // Activate buttons
         XCTAssertFalse(doneButton.isDisabled())
         XCTAssertFalse(cancelButton.isDisabled())
+        XCTAssertFalse(deleteButton.isDisabled())
         try doneButton.tap()
         try cancelButton.tap()
+        try deleteButton.tap()
         self.wait(for: .instant)
     }
     
