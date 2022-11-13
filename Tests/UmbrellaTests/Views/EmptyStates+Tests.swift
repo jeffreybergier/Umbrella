@@ -29,9 +29,6 @@ import SwiftUI
 import ViewInspector
 import Umbrella
 
-extension NotEmpty: Inspectable {}
-extension NotNIL: Inspectable {}
-
 class EmptyStates_Tests: XCTestCase {
     
     let full = "This is Full"
