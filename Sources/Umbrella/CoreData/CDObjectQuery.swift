@@ -51,14 +51,20 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     }
     
     public var wrappedValue: Out? {
-        get { self.object.value.map(self.onRead) }
+        get {
+            guard
+                let cd = self.object.value,
+                cd.isDeleted == false
+            else { return nil }
+            return self.onRead(cd)
+        }
         nonmutating set { self.write(newValue: newValue) }
     }
     
     public var projectedValue: Binding<Out>? {
-        guard let object = self.object.value else { return nil }
+        guard let value = self.wrappedValue else { return nil }
         return Binding {
-            self.onRead(object)
+            return value
         } set: {
             self.write(newValue: $0)
         }
