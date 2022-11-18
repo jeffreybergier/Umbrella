@@ -30,7 +30,7 @@ import SwiftUI
 public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
     
     public typealias OnError = (E) -> Void
-    public typealias ReadTransform = (In) -> Out
+    public typealias ReadTransform = (In) -> Out?
     public typealias WriteTransform = (In?, Out?) -> Result<Void, E>
         
     @Environment(\.managedObjectContext) private var context
@@ -52,10 +52,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
     
     public var wrappedValue: Out? {
         get {
-            guard
-                let cd = self.object.value,
-                cd.isDeleted == false
-            else { return nil }
+            guard let cd = self.object.value else { return nil }
             return self.onRead(cd)
         }
         nonmutating set { self.write(newValue: newValue) }
