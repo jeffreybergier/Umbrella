@@ -26,8 +26,67 @@
 
 import SwiftUI
 
-public typealias UFEAlert = UserFacingErrorAlert
+extension View {
+    public func alert<E: UserFacingError>(error binding: Binding<E?>,
+                      bundle b: any EnvironmentBundleProtocol,
+                      onDismiss: ((E) -> Void)? = nil)
+                   -> some View
+    {
+        // TODO: Abstract copy paste code
+        let title = b.localized(key: binding.wrappedValue?.title ?? "")
+        return self.alert(item: binding, title: title) { error in
+            ForEach(error.options) { option in
+                if option.isDestructive {
+                    Button(b.localized(key: option.title), role: .destructive) {
+                        option.perform()
+                        onDismiss?(error)
+                    }
+                } else {
+                    Button(b.localized(key: option.title)) {
+                        option.perform()
+                        onDismiss?(error)
+                    }
+                }
+            }
+            Button(b.localized(key: error.dismissTitle), role: .cancel) {
+                onDismiss?(error)
+            }
+        } message: {
+            Text(b.localized(key: $0.message))
+        }
+    }
+    
+    public func alert(anyError binding: Binding<UserFacingError?>,
+                      bundle b: any EnvironmentBundleProtocol,
+                      onDismiss: ((UserFacingError) -> Void)? = nil)
+                   -> some View
+    {
+        let title = b.localized(key: binding.wrappedValue?.title ?? "")
+        return self.alert(item: binding, title: title) { error in
+            ForEach(error.options) { option in
+                if option.isDestructive {
+                    Button(b.localized(key: option.title), role: .destructive) {
+                        option.perform()
+                        onDismiss?(error)
+                    }
+                } else {
+                    Button(b.localized(key: option.title)) {
+                        option.perform()
+                        onDismiss?(error)
+                    }
+                }
+            }
+            Button(b.localized(key: error.dismissTitle), role: .cancel) {
+                onDismiss?(error)
+            }
+        } message: {
+            Text(b.localized(key: $0.message))
+        }
+    }
+}
 
+
+@available(*, unavailable, message: "use: alert(error:bundle:onDismiss)")
 public struct UserFacingErrorAlert<B: EnvironmentBundleProtocol, E: Error>: ViewModifier {
     
     @Binding private var error: E?

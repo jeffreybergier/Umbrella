@@ -26,6 +26,7 @@
 
 import SwiftUI
 
+@available(*, unavailable, message: "use: alert(item:title:actions:message)")
 public struct JSBAlert<P, A: View, M: View, T: StringProtocol>: ViewModifier {
     @Binding private var isPresented: Bool
     private var titleKey: T

@@ -103,7 +103,7 @@ class BindingUmbrella_Tests: XCTestCase {
         XCTAssertEqual(b.flipped.wrappedValue, true)
     }
     
-    func test_isPresented() {
+    func test_isPresented_Collection() {
         let b = Binding<[String]> { self.originalArray } set: { self.originalArray = $0 }
         XCTAssertEqual(b.wrappedValue, [])
         XCTAssertEqual(b.isPresented.wrappedValue, false)
@@ -117,6 +117,22 @@ class BindingUmbrella_Tests: XCTestCase {
         XCTAssertEqual(self.originalArray, [])
         XCTAssertEqual(b.wrappedValue, [])
         XCTAssertEqual(b.isPresented.wrappedValue, false)
+    }
+    
+    func test_isPresented_Optional() {
+        var value: String? = nil
+        let b = Binding<String?> { value } set: { value = $0 }
+        let isP = b.isPresented_Optional()
+        XCTAssertNil(value)
+        XCTAssertNil(b.wrappedValue)
+        XCTAssertFalse(isP.wrappedValue)
+        b.wrappedValue = "Hello World"
+        XCTAssertEqual(value, "Hello World")
+        XCTAssertTrue(isP.wrappedValue)
+        isP.wrappedValue = false
+        XCTAssertNil(value)
+        XCTAssertNil(b.wrappedValue)
+        XCTAssertFalse(isP.wrappedValue)
     }
     
 }

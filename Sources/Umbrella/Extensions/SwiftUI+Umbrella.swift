@@ -216,6 +216,19 @@ extension View {
             content(items.wrappedValue)
         }
     }
+    
+    public func alert<A: View, M: View, T, S: StringProtocol>(item: Binding<T?>,
+                                                              title: S,
+                                                 @ViewBuilder actions: (T) -> A,
+                                                 @ViewBuilder message: (T) -> M)
+                                                           -> some View
+    {
+        self.alert(title,
+                   isPresented: item.isPresented_Optional(),
+                   presenting: item.wrappedValue,
+                   actions: actions,
+                   message: message)
+    }
 }
 
 // MARK: State Management Helpers
