@@ -41,17 +41,6 @@ extension EnvironmentValues {
     }
 }
 
-public struct EnvironmentClosure: EnvironmentKey {
-    public static var defaultValue: (() -> Void)? = nil
-}
-
-extension EnvironmentValues {
-    public var closure: (() -> Void)? {
-        get { self[EnvironmentClosure.self] }
-        set { self[EnvironmentClosure.self] = newValue }
-    }
-}
-
 public struct EnvironmentResponderError: EnvironmentKey {
     public static var defaultValue: (Swift.Error) -> Void = { event in
         assertionFailure("No Responder: \(event)")
@@ -66,12 +55,14 @@ extension EnvironmentValues {
 }
 
 public struct EnvironmentResponderCodableError: EnvironmentKey {
+    @available(*, deprecated, message:"Use EnvironmentResponderError")
     public static var defaultValue: (CodableError) -> Void = { event in
         assertionFailure("No Responder: \(event)")
     }
 }
 
 extension EnvironmentValues {
+    @available(*, deprecated, message:"Use `EnvironmentResponderError`")
     public var codableErrorResponder: (CodableError) -> Void {
         get { self[EnvironmentResponderCodableError.self] }
         set { self[EnvironmentResponderCodableError.self] = newValue }

@@ -30,7 +30,7 @@ import SwiftUI
 
 public struct DEBUG_FakeErrorsModifier: ViewModifier {
     
-    @Environment(\.codableErrorResponder) private var errorChain
+    @Environment(\.errorResponder) private var errorChain
     @State private var timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     public init() {}
@@ -38,7 +38,7 @@ public struct DEBUG_FakeErrorsModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .onReceive(self.timer) { _ in
-                self.errorChain(.init(domain: "UMBRELLA_DEBUG_ERROR", code: Int.random(in: 100...100_000_000)))
+                self.errorChain(CodableError(domain: "UMBRELLA_DEBUG_ERROR", code: Int.random(in: 100...100_000_000)))
             }
     }
 }
