@@ -26,6 +26,11 @@
 
 import Foundation
 
+public protocol CodableErrorConvertible {
+    init?(decode: CodableError)
+    var encode: CodableError { get }
+}
+
 /// Use to store errors in something that requires codable such as `SceneStorage` / `AppStorage`
 public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
     

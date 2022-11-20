@@ -26,7 +26,7 @@
 
 import Foundation
 
-public typealias UFError = UserFacingError
+public typealias CodableUserFacingError = CodableErrorConvertible & UserFacingError
 
 /// Use with `UserFacingErrorAlert` to easily present errors to the user
 public protocol UserFacingError: CustomNSError {
