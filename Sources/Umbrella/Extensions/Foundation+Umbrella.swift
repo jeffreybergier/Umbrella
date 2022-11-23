@@ -37,7 +37,17 @@ extension StringProtocol {
 #if canImport(UIKit)
 import UIKit
 public typealias JSBImage = UIImage
+extension JSBImage {
+    public static func image(named name: String, in bundle: Bundle) -> JSBImage? {
+        JSBImage(named: name, in: bundle, with: nil)
+    }
+}
 #else
 import AppKit
 public typealias JSBImage = NSImage
+extension JSBImage {
+    public static func image(named name: String, in bundle: Bundle) -> JSBImage? {
+        bundle.image(forResource: name)
+    }
+}
 #endif
