@@ -187,7 +187,7 @@ extension View {
         #if os(watchOS) || os(tvOS)
         return self.sheet(items: items, content: content, onDismiss: nil)
         #else
-        return self.popover(isPresented: items.isPresented) {
+        return self.popover(isPresented: items.isPresented()) {
             content(items.wrappedValue)
         }
         #endif
@@ -200,7 +200,7 @@ extension View {
     )
     -> some View
     {
-        return self.sheet(isPresented: items.isPresented, onDismiss: onDismiss) {
+        return self.sheet(isPresented: items.isPresented(), onDismiss: onDismiss) {
             content(items.wrappedValue)
         }
     }
@@ -212,7 +212,7 @@ extension View {
     )
     -> some View
     {
-        return self.sheetCover(isPresented: items.isPresented, onDismiss: onDismiss) {
+        return self.sheetCover(isPresented: items.isPresented(), onDismiss: onDismiss) {
             content(items.wrappedValue)
         }
     }
@@ -224,7 +224,7 @@ extension View {
                                                            -> some View
     {
         self.alert(title,
-                   isPresented: item.isPresented_Optional(),
+                   isPresented: item.isPresented(),
                    presenting: item.wrappedValue,
                    actions: actions,
                    message: message)
