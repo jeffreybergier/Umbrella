@@ -29,13 +29,11 @@ import SwiftUI
 // TODO: Not possible to make this generic yet
 
 public struct EnvironmentResponderAny: EnvironmentKey {
-    public static var defaultValue: (Any) -> Void = { event in
-        assertionFailure("No Responder: \(event)")
-    }
+    public static var defaultValue: ((Any) -> Void)? = nil
 }
 
 extension EnvironmentValues {
-    public var anyResponder: (Any) -> Void {
+    public var anyResponder: ((Any) -> Void)? {
         get { self[EnvironmentResponderAny.self] }
         set { self[EnvironmentResponderAny.self] = newValue }
     }
