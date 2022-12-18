@@ -55,6 +55,15 @@ public struct JSBToolbar: ViewModifier {
     }
     
     public func body(content: Content) -> some View {
+        #if os(macOS)
+        content.modifier(JSBToolbar_macOS(title: self.title,
+                                          done: self.done,
+                                          cancel: self.cancel,
+                                          delete: self.delete,
+                                          doneAction: self.actionDone,
+                                          cancelAction: self.actionCancel,
+                                          deleteAction: self.actionDelete))
+        #else
         content
             .navigationTitle(self.title)
             .toolbar {
@@ -81,6 +90,7 @@ public struct JSBToolbar: ViewModifier {
                 }
             }
             .navigationBarTitleDisplayModeInline
+        #endif
     }
 }
 
