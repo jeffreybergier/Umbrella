@@ -73,7 +73,7 @@ extension Binding where Value == Optional<Bool> {
 }
 
 extension Binding {
-    public func isPresented<T>() -> Binding<Bool> where Value == Optional<T> {
+    public func mapBool<T>() -> Binding<Bool> where Value == Optional<T> {
         return Binding<Bool> {
             return self.wrappedValue != nil
         } set: {
@@ -82,7 +82,7 @@ extension Binding {
         }
     }
     
-    public func isPresented() -> Binding<Bool> where Value: Collection & ExpressibleByArrayLiteral {
+    public func mapBool() -> Binding<Bool> where Value: Collection & ExpressibleByArrayLiteral {
         return Binding<Bool> {
             !self.wrappedValue.isEmpty
         } set: {
