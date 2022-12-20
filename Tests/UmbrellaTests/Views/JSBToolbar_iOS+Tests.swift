@@ -30,10 +30,13 @@ import TestUmbrella
 import ViewInspector
 @testable import Umbrella
 
-extension JSBToolbar: Inspectable {}
+// TODO: Write JSBToolbar_macOS tests
+// Or don't because its a dirty hack?
+
+extension JSBToolbar_iOS: Inspectable {}
 extension JSBToolbarButtonDone: Inspectable {}
 
-class JSBToolbar_Tests: AsyncTestCase {
+class JSBToolbar_iOS_Tests: AsyncTestCase {
     
     let title  = "Hello World"
     // TODO: Test keyboard shortcut when ViewInspector supports it
@@ -92,9 +95,9 @@ class JSBToolbar_Tests: AsyncTestCase {
     func test_doneOnly() throws {
         let wait = self.newWait(count: 1)
         let done = { wait(nil) }
-        let toolbar = JSBToolbar(title: self.title,
-                                 done: self.done,
-                                 doneAction: done)
+        let toolbar = JSBToolbar_iOS(title: self.title,
+                                     done: self.done,
+                                     doneAction: done)
         // TODO: Try to find title label
         let doneButton = try toolbar.inspect().find(button: self.done.title)
         XCTAssertNil(try? toolbar.inspect().find(button: self.cancel.title))
@@ -120,13 +123,13 @@ class JSBToolbar_Tests: AsyncTestCase {
         let done = { wait(nil) }
         let cancel = { wait(nil) }
         let delete = { wait(nil) }
-        let toolbar = JSBToolbar(title: self.title,
-                                 done: self.done,
-                                 cancel: self.cancel,
-                                 delete: self.delete,
-                                 doneAction: done,
-                                 cancelAction: cancel,
-                                 deleteAction: delete)
+        let toolbar = JSBToolbar_iOS(title: self.title,
+                                     done: self.done,
+                                     cancel: self.cancel,
+                                     delete: self.delete,
+                                     doneAction: done,
+                                     cancelAction: cancel,
+                                     deleteAction: delete)
         // TODO: Try to find title label
         let doneButton = try toolbar.inspect().find(button: self.done.title)
         let cancelButton = try toolbar.inspect().find(button: self.cancel.title)
@@ -155,11 +158,11 @@ class JSBToolbar_Tests: AsyncTestCase {
         let wait = self.newWait(count: 2)
         let done = { wait(nil) }
         let delete = { wait(nil) }
-        let toolbar = JSBToolbar(title: self.title,
-                                 done: self.done,
-                                 delete: self.delete,
-                                 doneAction: done,
-                                 deleteAction: delete)
+        let toolbar = JSBToolbar_iOS(title: self.title,
+                                     done: self.done,
+                                     delete: self.delete,
+                                     doneAction: done,
+                                     deleteAction: delete)
         // TODO: Try to find title label
         let doneButton = try toolbar.inspect().find(button: self.done.title)
         let deleteButton = try toolbar.inspect().find(button: self.delete.title)
