@@ -72,7 +72,10 @@ public struct JSBToolbar_iOS: ViewModifier {
                             .button(item: self.actionCancel, action: { $0() })
                     }
                 }
-                ToolbarItem(placement: .destructiveAction) {
+                // TODO: This should be `.destructiveAction` but the toolbar
+                // places this on the right side of the title with the ConfirmationAction.
+                // Configuring as `.cancellationAction` to place button on Left
+                ToolbarItem(placement: .cancellationAction) {
                     if let delete {
                         JSBToolbarButtonStyleDelete
                             .action(text: delete)
