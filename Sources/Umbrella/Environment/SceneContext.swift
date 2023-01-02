@@ -26,10 +26,11 @@
 
 import SwiftUI
 
-public struct ApplicationExecutionContext: EnvironmentKey {
+public struct SceneContext: EnvironmentKey {
     
     public enum Value {
         case normal
+        case scene(id: String)
         case extensionShare
         case extensionWidget
         case extensionKeyboard
@@ -41,8 +42,8 @@ public struct ApplicationExecutionContext: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    public var executionContext: ApplicationExecutionContext.Value {
-        get { self[ApplicationExecutionContext.self] }
-        set { self[ApplicationExecutionContext.self] = newValue }
+    public var sceneContext: SceneContext.Value {
+        get { self[SceneContext.self] }
+        set { self[SceneContext.self] = newValue }
     }
 }
