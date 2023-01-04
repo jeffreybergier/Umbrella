@@ -59,12 +59,3 @@ public protocol CodableErrorConvertible {
     init?(decode: CodableError)
     var encode: CodableError { get }
 }
-
-extension CodableError: CodableErrorConvertible {
-    public init?(decode: CodableError) {
-        self = decode
-    }
-    public var encode: CodableError {
-        self
-    }
-}

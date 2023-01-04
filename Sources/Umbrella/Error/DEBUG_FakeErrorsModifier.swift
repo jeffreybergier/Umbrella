@@ -38,7 +38,10 @@ public struct DEBUG_FakeErrorsModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .onReceive(self.timer) { _ in
-                self.errorChain(CodableError(domain: "UMBRELLA_DEBUG_ERROR", code: Int.random(in: 100...100_000_000)))
+                self.errorChain(
+                    NSError(domain: "UMBRELLA_DEBUG_ERROR",
+                            code: Int.random(in: 100...100_000_000))
+                )
             }
     }
 }
