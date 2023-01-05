@@ -140,10 +140,12 @@ public struct ActionLocalization {
 
 public enum ActionLabelImage: Equatable {
     case system(String)
-    case custom(Image)
+    case view(Image)
+    case image(JSBImage)
     public var image: Image {
         switch self {
-        case .custom(let image): return image
+        case .view(let image): return image
+        case .image(let image): return Image(jsbImage: image)
         case .system(let name): return Image(systemName: name)
         }
     }

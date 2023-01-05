@@ -29,26 +29,13 @@ import SwiftUI
 // TODO: Not possible to make this generic yet
 
 public struct EnvironmentResponderAny: EnvironmentKey {
-    public static var defaultValue: (Any) -> Void = { event in
-        assertionFailure("No Responder: \(event)")
-    }
+    public static var defaultValue: ((Any) -> Void)? = nil
 }
 
 extension EnvironmentValues {
-    public var anyResponder: (Any) -> Void {
+    public var anyResponder: ((Any) -> Void)? {
         get { self[EnvironmentResponderAny.self] }
         set { self[EnvironmentResponderAny.self] = newValue }
-    }
-}
-
-public struct EnvironmentClosure: EnvironmentKey {
-    public static var defaultValue: (() -> Void)? = nil
-}
-
-extension EnvironmentValues {
-    public var closure: (() -> Void)? {
-        get { self[EnvironmentClosure.self] }
-        set { self[EnvironmentClosure.self] = newValue }
     }
 }
 
@@ -64,17 +51,3 @@ extension EnvironmentValues {
         set { self[EnvironmentResponderError.self] = newValue }
     }
 }
-
-public struct EnvironmentResponderCodableError: EnvironmentKey {
-    public static var defaultValue: (CodableError) -> Void = { event in
-        assertionFailure("No Responder: \(event)")
-    }
-}
-
-extension EnvironmentValues {
-    public var codableErrorResponder: (CodableError) -> Void {
-        get { self[EnvironmentResponderCodableError.self] }
-        set { self[EnvironmentResponderCodableError.self] = newValue }
-    }
-}
-

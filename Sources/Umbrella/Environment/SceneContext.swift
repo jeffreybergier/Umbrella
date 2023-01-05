@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/02/19.
+//  Created by Jeffrey Bergier on 2022/10/15.
 //
 //  MIT License
 //
@@ -11,10 +11,10 @@
 //  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
-
+//
 //  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
-
+//
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 //  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,39 +24,26 @@
 //  SOFTWARE.
 //
 
-import Foundation
+import SwiftUI
 
-/// Conform to this protoocal to help systemize your conversion to and from CodableError
-public protocol CodableErrorConvertible {
-    init?(decode: CodableError)
-    var encode: CodableError { get }
+public struct SceneContext: EnvironmentKey {
+    
+    public enum Value {
+        case normal
+        case scene(id: String)
+        case extensionShare
+        case extensionWidget
+        case extensionKeyboard
+        case other
+    }
+    
+    public static let defaultValue = Value.normal
+    
 }
 
-/// Use to store errors in something that requires codable such as `SceneStorage` / `AppStorage`
-public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
-    
-    public var id: UUID = .init()
-    public var errorCode: Int
-    public var errorDomain: String
-    public var arbitraryData: Data?
-    
-    public init(domain: String,
-                code: Int,
-                arbitraryData: Data? = nil)
-    {
-        self.errorCode = code
-        self.errorDomain = domain
-        self.arbitraryData = arbitraryData
-    }
-    
-    public init(_ error: Swift.Error) {
-        assert(type(of: error) != CodableError.self)
-        self.init(error as NSError)
-    }
-    
-    public init(_ error: NSError) {
-        self.errorCode = error.code
-        self.errorDomain = error.domain
-        self.arbitraryData = String(describing: error).data(using: .utf8)
+extension EnvironmentValues {
+    public var sceneContext: SceneContext.Value {
+        get { self[SceneContext.self] }
+        set { self[SceneContext.self] = newValue }
     }
 }

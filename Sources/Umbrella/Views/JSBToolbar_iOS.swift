@@ -26,7 +26,7 @@
 
 import SwiftUI
 
-public struct JSBToolbar: ViewModifier {
+public struct JSBToolbar_iOS: ViewModifier {
 
     private var title:  LocalizedString
     private var done:   ActionLocalization?
@@ -55,36 +55,34 @@ public struct JSBToolbar: ViewModifier {
     }
     
     public func body(content: Content) -> some View {
-        #if os(macOS)
-        content.modifier(JSBToolbar_macOS(title: self.title,
-                                          done: self.done,
-                                          cancel: self.cancel,
-                                          delete: self.delete,
-                                          doneAction: self.actionDone,
-                                          cancelAction: self.actionCancel,
-                                          deleteAction: self.actionDelete))
-        #else
-        content.modifier(JSBToolbar_iOS(title: self.title,
-                                        done: self.done,
-                                        cancel: self.cancel,
-                                        delete: self.delete,
-                                        doneAction: self.actionDone,
-                                        cancelAction: self.actionCancel,
-                                        deleteAction: self.actionDelete))
-        #endif
-    }
-}
-
-public let JSBToolbarButtonStyleDone:   some ActionStyle = ActionStyleImp(labelStyle: .titleOnly, outerModifier: JSBToolbarButtonDone())
-public let JSBToolbarButtonStyleCancel: some ActionStyle = ActionStyleImp(buttonRole: .cancel, labelStyle: .titleOnly)
-public let JSBToolbarButtonStyleDelete: some ActionStyle = ActionStyleImp(buttonRole: .destructive, labelStyle: .titleOnly)
-
-internal struct JSBToolbarButtonDone: ViewModifier {
-    internal func body(content: Content) -> some View {
-        if #available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *) {
-            content.bold(true)
-        } else {
-            content
-        }
+        content
+            .navigationTitle(self.title)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    if let done {
+                        JSBToolbarButtonStyleDone
+                            .action(text: done)
+                            .button(item: self.actionDone, action: { $0() })
+                    }
+                }
+                ToolbarItem(placement: .cancellationAction) {
+                    if let cancel {
+                        JSBToolbarButtonStyleCancel
+                            .action(text: cancel)
+                            .button(item: self.actionCancel, action: { $0() })
+                    }
+                }
+                // TODO: This should be `.destructiveAction` but the toolbar
+                // places this on the right side of the title with the ConfirmationAction.
+                // Configuring as `.cancellationAction` to place button on Left
+                ToolbarItem(placement: .cancellationAction) {
+                    if let delete {
+                        JSBToolbarButtonStyleDelete
+                            .action(text: delete)
+                            .button(item: self.actionDelete, action: { $0() })
+                    }
+                }
+            }
+            .navigationBarTitleDisplayModeInline
     }
 }

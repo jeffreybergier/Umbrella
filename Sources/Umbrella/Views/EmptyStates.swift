@@ -27,69 +27,96 @@
 import SwiftUI
 
 extension Collection {
+    @ViewBuilder
     public func view<Backup: View, Content: View>(
         @ViewBuilder content: @escaping (Self) -> Content,
         @ViewBuilder onEmpty: @escaping () -> Backup
     ) -> some View
     {
-        NotEmpty(self, content: content, onEmpty: onEmpty)
+        if self.isEmpty == false  {
+            content(self)
+        } else {
+            onEmpty()
+        }
+    }
+    
+    @ViewBuilder
+    public func view<Content: View>(
+        @ViewBuilder content: @escaping (Self) -> Content
+    ) -> some View
+    {
+        self.view(content: content, onEmpty: {})
     }
 }
 
 extension Optional {
+    
+    @ViewBuilder
     public func view<Backup: View, Content: View>(
         @ViewBuilder content: @escaping (Wrapped) -> Content,
         @ViewBuilder onNIL: @escaping () -> Backup
     ) -> some View
     {
-        NotNIL(self, content: content, onNIL: onNIL)
-    }
-}
-
-public struct NotEmpty<Value: Collection, Backup: View, Content: View>: View {
-    
-    private let value: Value
-    private let backup: () -> Backup
-    private let content: (Value) -> Content
-    
-    public init(_ value: Value,
-                @ViewBuilder content: @escaping (Value) -> Content,
-                @ViewBuilder onEmpty: @escaping () -> Backup)
-    {
-        self.value = value
-        self.backup = onEmpty
-        self.content = content
-    }
-    
-    @ViewBuilder public var body: some View {
-        if self.value.isEmpty {
-            self.backup()
+        if let self {
+            content(self)
         } else {
-            self.content(self.value)
+            onNIL()
         }
     }
-}
-
-public struct NotNIL<Value, Backup: View, Content: View>: View {
     
-    private let value: Value?
-    private let backup: () -> Backup
-    private let content: (Value) -> Content
-    
-    public init(_ value: Value?,
-                @ViewBuilder content: @escaping (Value) -> Content,
-                @ViewBuilder onNIL: @escaping () -> Backup)
+    @ViewBuilder
+    public func view<Backup: View, Content: View, O1>(
+        _ other1: O1?,
+        @ViewBuilder content: @escaping (Wrapped, O1) -> Content,
+        @ViewBuilder onNIL: @escaping () -> Backup
+    ) -> some View
     {
-        self.value = value
-        self.backup = onNIL
-        self.content = content
+        if let self, let other1 {
+            content(self, other1)
+        } else {
+            onNIL()
+        }
     }
     
-    @ViewBuilder public var body: some View {
-        if let value {
-            self.content(value)
+    @ViewBuilder
+    public func view<Backup: View, Content: View, O1, O2>(
+        _ other1: O1?,
+        _ other2: O2?,
+        @ViewBuilder content: @escaping (Wrapped, O1, O2) -> Content,
+        @ViewBuilder onNIL: @escaping () -> Backup
+    ) -> some View
+    {
+        if let self, let other1, let other2 {
+            content(self, other1, other2)
         } else {
-            self.backup()
+            onNIL()
         }
+    }
+    
+    @ViewBuilder
+    public func view<Content: View>(
+        @ViewBuilder content: @escaping (Wrapped) -> Content
+    ) -> some View
+    {
+        self.view(content: content, onNIL: {})
+    }
+    
+    @ViewBuilder
+    public func view<Content: View, O1>(
+        _ other1: O1?,
+        @ViewBuilder content: @escaping (Wrapped, O1) -> Content
+    ) -> some View
+    {
+        self.view(other1, content: content, onNIL: {})
+    }
+    
+    @ViewBuilder
+    public func view<Content: View, O1, O2>(
+        _ other1: O1?,
+        _ other2: O2?,
+        @ViewBuilder content: @escaping (Wrapped, O1, O2) -> Content
+    ) -> some View
+    {
+        self.view(other1, other2, content: content, onNIL: {})
     }
 }
