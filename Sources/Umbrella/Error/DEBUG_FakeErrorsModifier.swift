@@ -30,18 +30,27 @@ import SwiftUI
 
 public struct DEBUG_FakeErrorsModifier: ViewModifier {
     
-    @Environment(\.errorResponder) private var errorChain
+    public static let defaultErrorProducer: (Int) -> Error = { _ in
+        NSError(domain: "UMBRELLA_DEBUG_ERROR",
+                code: Int.random(in: 100...100_000_000))
+    }
+    
+    @State private var iteration = 0
     @State private var timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    
+    @Environment(\.errorResponder) private var errorChain
+    
+    private let errorProducer: (Int) -> Error
 
-    public init() {}
+    public init(_ errorProducer: @escaping (Int) -> Error = defaultErrorProducer) {
+        self.errorProducer = errorProducer
+    }
     
     public func body(content: Content) -> some View {
         content
             .onReceive(self.timer) { _ in
-                self.errorChain(
-                    NSError(domain: "UMBRELLA_DEBUG_ERROR",
-                            code: Int.random(in: 100...100_000_000))
-                )
+                self.errorChain(self.errorProducer(self.iteration))
+                self.iteration += 1
             }
     }
 }
