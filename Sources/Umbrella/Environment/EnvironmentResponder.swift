@@ -51,19 +51,3 @@ extension EnvironmentValues {
         set { self[EnvironmentResponderError.self] = newValue }
     }
 }
-
-public struct EnvironmentResponderCodableError: EnvironmentKey {
-    @available(*, deprecated, message:"Use EnvironmentResponderError")
-    public static var defaultValue: (CodableError) -> Void = { event in
-        assertionFailure("No Responder: \(event)")
-    }
-}
-
-extension EnvironmentValues {
-    @available(*, deprecated, message:"Use `EnvironmentResponderError`")
-    public var codableErrorResponder: (CodableError) -> Void {
-        get { self[EnvironmentResponderCodableError.self] }
-        set { self[EnvironmentResponderCodableError.self] = newValue }
-    }
-}
-
