@@ -26,8 +26,6 @@
 
 import Foundation
 
-public typealias CodableUserFacingError = CodableErrorConvertible & UserFacingError
-
 /// Use with `UserFacingErrorAlert` to easily present errors to the user
 public protocol UserFacingError: CustomNSError {
     /// Default implementation is "Error"
@@ -53,18 +51,5 @@ public struct RecoveryOption: Identifiable {
         self.title = title
         self.isDestructive = isDestructive
         self.perform = perform
-    }
-}
-
-extension UserFacingError {
-    /// Default implementation `com.your.bundle.id.ParentType.ErrorType`
-    /// Override if you want something custom or automatic implementation no longer works
-    /// Automatic implementation uses fragile hackery.
-    public static var errorDomain: String {
-        let typeString = __typeName(self)
-        let bundle = Bundle.for(type: self) ?? .main
-        let id = bundle.bundleIdentifier ?? "unknown.bundleid"
-        let domain = id + "." + typeString
-        return domain
     }
 }
