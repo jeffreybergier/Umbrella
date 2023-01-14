@@ -27,18 +27,19 @@ import CoreData
 import SwiftUI
 
 @propertyWrapper
-public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
+public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
-    public typealias OnError = (E) -> Void
+    public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out?
-    public typealias WriteTransform = (In?, Out?) -> Result<Void, E>
-        
-    @Environment(\.managedObjectContext) private var context
+    public typealias WriteTransform = (In?, Out?) -> Result<Void, Swift.Error>
     
     private let onRead: ReadTransform
     @StateObject private var object = NilBox<In>()
     @StateObject private var onWrite: SecretBox<WriteTransform?>
     @StateObject private var onError: SecretBox<OnError?>
+    
+    @Environment(\.managedObjectContext) private var context
+    @Environment(\.errorResponder) private var errorResponder
         
     public init(objectIDURL: URL? = nil,
                 onError: OnError? = nil,
@@ -55,7 +56,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
             guard let cd = self.object.value else { return nil }
             return self.onRead(cd)
         }
-        nonmutating set { self.write(newValue: newValue) }
+        nonmutating set { self.write(newValue) }
     }
     
     public var projectedValue: Binding<Out>? {
@@ -63,7 +64,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
         return Binding {
             return value
         } set: {
-            self.write(newValue: $0)
+            self.write($0)
         }
     }
     
@@ -81,13 +82,14 @@ public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty
         self.object.value = object
     }
     
-    private func write(newValue: Out?) {
+    private func write(_ newValue: Out?) {
         guard let onWrite = self.onWrite.value else {
             assertionFailure("Attempted to write value, but no write closure was given")
             return
         }
         guard let error = onWrite(self.object.value, newValue).error else { return }
-        self.onError.value?(error)
+        let errorHandler = self.onError.value ?? self.errorResponder
+        errorHandler(error)
     }
     
     public func setOnWrite(_ newValue: WriteTransform?) {

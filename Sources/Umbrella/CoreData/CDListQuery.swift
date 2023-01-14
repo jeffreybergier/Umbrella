@@ -27,17 +27,18 @@ import CoreData
 import SwiftUI
 
 @propertyWrapper
-public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
+public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     
-    public typealias OnError = (E) -> Void
+    public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out
-    public typealias WriteTransform = (In, Out) -> Result<Void, E>
+    public typealias WriteTransform = (In, Out) -> Result<Void, Swift.Error>
     
     private let onRead: ReadTransform
     @StateObject private var onWrite: SecretBox<WriteTransform?>
     @StateObject private var onError: SecretBox<OnError?>
     
     @FetchRequest public var request: FetchedResults<In>
+    @Environment(\.errorResponder) private var errorResponder
 
     public init(sort:      [SortDescriptor<In>] = [],
                 predicate: NSPredicate? = nil,
@@ -71,7 +72,8 @@ public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
                     return
                 }
                 guard let error = onWrite(cd, newValue).error else { return }
-                self.onError.value?(error)
+                let errorHandler = self.onError.value ?? self.errorResponder
+                errorHandler(error)
             }
         }
     }
