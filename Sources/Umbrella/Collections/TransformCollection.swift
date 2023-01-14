@@ -24,6 +24,7 @@
 //  SOFTWARE.
 //
 
+@available(*, deprecated, message:"Is this used?")
 public struct TransformCollection<Collection: RandomAccessCollection, Output>: RandomAccessCollection
        where Collection.Index == Int
 {

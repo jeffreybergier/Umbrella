@@ -57,13 +57,11 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     public var wrappedValue: some RandomAccessCollection<Out> {
-        TransformCollection(collection: self.request) { cd in
-            self.onRead(cd)
-        }
+        self.request.lazy.map(self.onRead)
     }
     
     public var projectedValue: some RandomAccessCollection<Binding<Out>> {
-        TransformCollection(collection: self.request) { cd in
+        self.request.lazy.map { cd in
             Binding {
                 self.onRead(cd)
             } set: { newValue in
