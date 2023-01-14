@@ -27,12 +27,14 @@
 import Foundation
 
 /// Conform to this protoocal to help systemize your conversion to and from CodableError
+@available(*, deprecated, message:"Use `TODO:Something`")
 public protocol CodableErrorConvertible {
     init?(decode: CodableError)
     var encode: CodableError { get }
 }
 
 /// Use to store errors in something that requires codable such as `SceneStorage` / `AppStorage`
+@available(*, deprecated, message:"Use `TODO:Something`")
 public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
     
     public var id: UUID = .init()
