@@ -35,28 +35,35 @@ import SwiftUI
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
-    public typealias Environment = ObserveBox<Dictionary<Identifier, Error>>
+    public typealias EnvironmentValue = ObserveBox<Dictionary<Identifier, Error>>
     public typealias Value = Array<Identifier>
     
     public struct Identifier: Identifiable, Codable, Hashable {
         public var id = UUID()
     }
     
-    public static func newEnvironment() -> Environment { .init([:]) }
+    public static func newEnvironment() -> EnvironmentValue { .init([:]) }
     
-    @EnvironmentObject private var storage: Environment
+    @Environment(\.sceneContext) private var context
+    @EnvironmentObject private var storage: EnvironmentValue
+    @JSBSceneStorage("com.jeffburg.umbrella.errorstorage")
+    private var identifiers: [SceneContext.Value: Array<Identifier>] = [:]
         
     public init() {}
     
-    public var wrappedValue: Value {
-        Array(self.storage.value.keys)
+    public private(set) var wrappedValue: Value {
+        get { self.identifiers[self.context] ?? [] }
+        nonmutating set { self.identifiers[self.context] = newValue }
     }
     
     public func pop(_ key: Identifier) -> Error? {
-        self.storage.value.removeValue(forKey: key)
+        self.wrappedValue.removeAll { key == $0 }
+        return self.storage.value.removeValue(forKey: key)
     }
     
     public func append(_ error: Error) {
-        self.storage.value[Identifier()] = error
+        let id = Identifier()
+        self.wrappedValue.append(id)
+        self.storage.value[id] = error
     }
 }
