@@ -35,40 +35,43 @@ import SwiftUI
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
-    public typealias EnvironmentValue = ObserveBox<[Identifier: Error]>
     public typealias Value = Array<Identifier>
+    
+    public class EnvironmentValue: ObservableObject {
+        @Published public var storage: [Identifier: Error] = [:]
+        @Published public var identifiers: [SceneContext.Value: [Identifier]] = [:]
+        public init() {}
+    }
     
     public struct Identifier: Identifiable, Codable, Hashable {
         public var id = UUID()
     }
     
-    public static func newEnvironment() -> EnvironmentValue { .init([:]) }
+    public static func newEnvironment() -> EnvironmentValue { .init() }
     
     @Environment(\.sceneContext) private var context
     @EnvironmentObject private var storage: EnvironmentValue
-    @JSBSceneStorage("com.jeffburg.umbrella.errorstorage")
-        private var identifiers: [SceneContext.Value: [Identifier]] = [:]
         
     public init() {}
     
     /// Use to detect in your UI if there are Errors to show and what the next error is.
     public private(set) var wrappedValue: Value {
-        get { self.identifiers[self.context] ?? [] }
-        nonmutating set { self.identifiers[self.context] = newValue }
+        get { self.storage.identifiers[self.context] ?? [] }
+        nonmutating set { self.storage.identifiers[self.context] = newValue }
     }
     
     public func error(for key: Identifier) -> Error? {
-        self.storage.value[key]
+        self.storage.storage[key]
     }
     
     public func append(_ error: Error) {
         let id = Identifier()
         self.wrappedValue.append(id)
-        self.storage.value[id] = error
+        self.storage.storage[id] = error
     }
     
     public func remove(_ key: Identifier) {
         self.wrappedValue.removeAll { key == $0 }
-        self.storage.value.removeValue(forKey: key)
+        self.storage.storage.removeValue(forKey: key)
     }
 }
