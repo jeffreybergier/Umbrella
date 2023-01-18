@@ -26,6 +26,7 @@
 
 import SwiftUI
 
+@available(*, deprecated, message: "Use ErrorStorage")
 public struct ErrorCatcher: ViewModifier {
     
     public static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
