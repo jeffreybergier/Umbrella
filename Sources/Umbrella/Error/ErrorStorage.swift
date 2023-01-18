@@ -37,12 +37,6 @@ public struct ErrorStorage: DynamicProperty {
     
     public typealias Value = Array<Identifier>
     
-    public class EnvironmentValue: ObservableObject {
-        @Published public var storage: [Identifier: Error] = [:]
-        @Published public var identifiers: [SceneContext.Value: [Identifier]] = [:]
-        public init() {}
-    }
-    
     public struct Identifier: Identifiable, Codable, Hashable {
         public var id = UUID()
     }
@@ -56,22 +50,59 @@ public struct ErrorStorage: DynamicProperty {
     
     /// Use to detect in your UI if there are Errors to show and what the next error is.
     public private(set) var wrappedValue: Value {
-        get { self.storage.identifiers[self.context] ?? [] }
+        get { self.storage.identifiers[self.context, default: []] }
         nonmutating set { self.storage.identifiers[self.context] = newValue }
     }
     
     public func error(for key: Identifier) -> Error? {
-        self.storage.storage[key]
+        self.storage.error(for: key)
     }
     
     public func append(_ error: Error) {
-        let id = Identifier()
-        self.wrappedValue.append(id)
-        self.storage.storage[id] = error
+        self.storage.append(error, for: self.context)
     }
     
     public func remove(_ key: Identifier) {
-        self.wrappedValue.removeAll { key == $0 }
-        self.storage.storage.removeValue(forKey: key)
+        self.storage.remove(key, for: self.context)
+    }
+    
+    public func removeAll() {
+        self.storage.removeAll(self.context)
+    }
+}
+
+extension ErrorStorage {
+    public class EnvironmentValue: ObservableObject {
+        
+        @Published public internal(set) var storage: [Identifier: Error] = [:]
+        @Published public internal(set) var identifiers: [SceneContext.Value: [Identifier]] = [:]
+        
+        public init() {}
+        
+        public func error(for key: Identifier) -> Error? {
+            self.storage[key]
+        }
+        
+        public func append(_ error: Error, for context: SceneContext.Value) {
+            let id = Identifier()
+            self.identifiers[context, default: []].append(id)
+            self.storage[id] = error
+        }
+        
+        public func remove(_ key: Identifier, for context: SceneContext.Value) {
+            self.identifiers[context, default: []].removeAll { key == $0 }
+            self.storage.removeValue(forKey: key)
+        }
+        
+        public func removeAll(_ context: SceneContext.Value? = nil) {
+            if let context {
+                let identifiers = self.identifiers[context, default: []]
+                identifiers.forEach { self.storage.removeValue(forKey: $0) }
+                self.identifiers[context] = []
+            } else {
+                self.storage = [:]
+                self.identifiers = [:]
+            }
+        }
     }
 }
