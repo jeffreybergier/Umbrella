@@ -40,13 +40,13 @@ public struct ErrorMover: ViewModifier {
     
     public func body(content: Content) -> some View {
         content
-            .onLoadChange(of: self.storage) { store in
+            .onLoadChange(of: self.storage.all) { store in
                 guard self.isAlreadyPresenting == false else { return }
                 self.toPresent = store.first
             }
             .onLoadChange(of: self.isAlreadyPresenting) { isAlreadyPresenting in
                 guard isAlreadyPresenting == false else { return }
-                self.toPresent = self.storage.first
+                self.toPresent = self.storage.all.first
             }
     }
 }

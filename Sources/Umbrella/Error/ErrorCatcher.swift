@@ -39,7 +39,7 @@ public struct ErrorCatcher: ViewModifier {
         content.environment(\.errorResponder) { error in
             // TODO: Hack to allow next error to appear
             DispatchQueue.main.asyncAfter(deadline: ErrorCatcher.HACK_errorDelay) {
-                _storage.append(error)
+                self.storage.append(error)
             }
         }
     }

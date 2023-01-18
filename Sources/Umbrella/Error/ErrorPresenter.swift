@@ -49,7 +49,7 @@ public struct ErrorPresenter<B: EnvironmentBundleProtocol>: ViewModifier {
             .alert(anyError: self.isUserFacingError,
                    bundle:   self.bundle)
         {
-            self.isError.map { _storage.remove($0) }
+            self.isError.map { self.storage.remove($0) }
             self.onDismiss($0)
         }
     }
@@ -57,7 +57,7 @@ public struct ErrorPresenter<B: EnvironmentBundleProtocol>: ViewModifier {
     private var isUserFacingError: Binding<UserFacingError?> {
         Binding {
             guard let identifier = self.isError else { return nil }
-            guard let error = _storage.error(for: identifier) else {
+            guard let error = self.storage.error(for: identifier) else {
                 self.isError = nil
                 return nil
             }

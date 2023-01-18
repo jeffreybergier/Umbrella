@@ -35,44 +35,45 @@ import SwiftUI
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
-    public typealias Value = Array<Identifier>
-    
     public struct Identifier: Identifiable, Codable, Hashable {
         public var id = UUID()
     }
     
     public static func newEnvironment() -> EnvironmentValue { .init() }
     
-    @EnvironmentObject public var storage: EnvironmentValue
-    
+    @EnvironmentObject private var storage: EnvironmentValue
     @Environment(\.sceneContext) private var context
     
     public init() {}
     
     /// Use to detect in your UI if there are Errors to show and what the next error is.
-    public private(set) var wrappedValue: Value {
-        get { self.storage.identifiers[self.context, default: []] }
-        nonmutating set { self.storage.identifiers[self.context] = newValue }
-    }
-    
-    public func error(for key: Identifier) -> Error? {
-        self.storage.error(for: key)
-    }
-    
-    public func append(_ error: Error) {
-        self.storage.append(error, for: self.context)
-    }
-    
-    public func remove(_ key: Identifier) {
-        self.storage.remove(key, for: self.context)
-    }
-    
-    public func removeAll() {
-        self.storage.removeAll(self.context)
+    public var wrappedValue: Value {
+        return .init(all: self.storage.identifiers[self.context, default: []],
+                     rawStorage: self.storage,
+                     context: self.context)
     }
 }
 
 extension ErrorStorage {
+    
+    public struct Value {
+        public let all: [Identifier]
+        public let rawStorage: EnvironmentValue
+        internal let context: SceneContext.Value
+        public func error(for key: Identifier) -> Error? {
+            self.rawStorage.error(for: key)
+        }
+        public func append(_ error: Error) {
+            self.rawStorage.append(error, for: self.context)
+        }
+        public func remove(_ key: Identifier) {
+            self.rawStorage.remove(key, for: self.context)
+        }
+        public func removeAll() {
+            self.rawStorage.removeAll(self.context)
+        }
+    }
+    
     public class EnvironmentValue: ObservableObject {
         
         @Published public internal(set) var storage: [Identifier: Error] = [:]
