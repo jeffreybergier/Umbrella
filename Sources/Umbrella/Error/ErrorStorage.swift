@@ -43,9 +43,10 @@ public struct ErrorStorage: DynamicProperty {
     
     public static func newEnvironment() -> EnvironmentValue { .init() }
     
+    @EnvironmentObject public var storage: EnvironmentValue
+    
     @Environment(\.sceneContext) private var context
-    @EnvironmentObject private var storage: EnvironmentValue
-        
+    
     public init() {}
     
     /// Use to detect in your UI if there are Errors to show and what the next error is.
