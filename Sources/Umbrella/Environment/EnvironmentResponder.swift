@@ -28,19 +28,18 @@ import SwiftUI
 
 // TODO: Not possible to make this generic yet
 
-@available(*, deprecated, message: "Roll Your Own")
 public struct EnvironmentResponderAny: EnvironmentKey {
     public static var defaultValue: ((Any) -> Void)? = nil
 }
 
 extension EnvironmentValues {
+    @available(*, deprecated, message: "Roll Your Own")
     public var anyResponder: ((Any) -> Void)? {
         get { self[EnvironmentResponderAny.self] }
         set { self[EnvironmentResponderAny.self] = newValue }
     }
 }
 
-@available(*, deprecated, message: "Use ErrorStorage")
 public struct EnvironmentResponderError: EnvironmentKey {
     public static var defaultValue: (Swift.Error) -> Void = { event in
         assertionFailure("No Responder: \(event)")
@@ -48,6 +47,7 @@ public struct EnvironmentResponderError: EnvironmentKey {
 }
 
 extension EnvironmentValues {
+    @available(*, deprecated, message: "Use ErrorStorage")
     public var errorResponder: (Swift.Error) -> Void {
         get { self[EnvironmentResponderError.self] }
         set { self[EnvironmentResponderError.self] = newValue }
