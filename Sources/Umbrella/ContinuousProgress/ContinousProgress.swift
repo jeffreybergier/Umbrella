@@ -26,7 +26,6 @@
 
 import Combine
 import CoreData
-import Collections
 
 /// Represents the progress of something that is long running and can produce
 /// errors upon startup and errors while running. I use this to reflect the status
@@ -37,7 +36,7 @@ public protocol ContinousProgress: ObservableObject {
     associatedtype Error: Swift.Error
     var progress: Progress { get }
     /// When an error occurs, append it to the Queue.
-    var errors: Deque<Error> { get set }
+    var errors: [Error] { get set }
 }
 
 public enum CPError: CustomNSError {
@@ -62,14 +61,14 @@ public class AnyContinousProgress<Error: Swift.Error>: ContinousProgress {
     
     public let objectWillChange: ObservableObjectPublisher
     public var progress: Progress { _progress() }
-    public var errors: Deque<Error> {
+    public var errors: [Error] {
         get { _errors_get() }
         set { _errors_set(newValue) }
     }
     
     private var _progress: () -> Progress
-    private var _errors_get: () -> Deque<Error>
-    private var _errors_set: (Deque<Error>) -> Void
+    private var _errors_get: () -> [Error]
+    private var _errors_set: ([Error]) -> Void
     
     public init<T: ContinousProgress>(_ progress: T) where T.Error == Error,
                 T.ObjectWillChangePublisher == ObservableObjectPublisher
@@ -85,7 +84,7 @@ public class AnyContinousProgress<Error: Swift.Error>: ContinousProgress {
 public class NoContinousProgress<Error: Swift.Error>: ContinousProgress {
     public let initializeError: Error? = nil
     public let progress: Progress = .init()
-    public var errors: Deque<Error> = .init()
+    public var errors: [Error] = .init()
     public init() {}
 }
 

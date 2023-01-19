@@ -25,7 +25,6 @@
 //
 
 import Foundation
-import Collections
 import SwiftUI
 
 /// Provides ErrorStorage with an identifier that can conforms to `Codable`.

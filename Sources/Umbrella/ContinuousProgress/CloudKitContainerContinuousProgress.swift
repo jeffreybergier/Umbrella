@@ -27,7 +27,6 @@
 import CoreData
 import Combine
 import CloudKit
-import Collections
 
 // Highly inspired by
 // https://github.com/ggruen/CloudKitSyncMonitor/blob/main/Sources/CloudKitSyncMonitor/SyncMonitor.swift
@@ -38,7 +37,7 @@ import Collections
 public class CloudKitContainerContinuousProgress: ContinousProgress {    
     
     public let progress: Progress
-    public var errors: Deque<CPError> = .init()
+    public var errors: [CPError] = .init()
     
     private let syncName = NSPersistentCloudKitContainer.eventChangedNotification
     private let accountName = Notification.Name.CKAccountChanged
