@@ -34,6 +34,9 @@ import SwiftUI
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
+    /// HACK because SwiftUI needs to let things settle before trying to present next error
+    public static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
+    
     public struct Identifier: Identifiable, Codable, Hashable {
         public var id = UUID()
     }
@@ -63,7 +66,11 @@ extension ErrorStorage {
             self.rawStorage.error(for: key)
         }
         public func append(_ error: Error) {
-            self.rawStorage.append(error, for: self.context)
+            /// HACK because SwiftUI needs to let things settle before trying to present next error
+            DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
+            { [rawStorage, context] in
+                rawStorage.append(error, for: context)
+            }
         }
         public func remove(_ key: Identifier) {
             self.rawStorage.remove(key, for: self.context)
