@@ -39,7 +39,6 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     @StateObject private var onError: SecretBox<OnError?>
     
     @Environment(\.managedObjectContext) private var context
-    @Environment(\.errorResponder) private var errorResponder
         
     public init(objectIDURL: URL? = nil,
                 onError: OnError? = nil,
@@ -88,8 +87,11 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
             return
         }
         guard let error = onWrite(self.object.value, newValue).error else { return }
-        let errorHandler = self.onError.value ?? self.errorResponder
-        errorHandler(error)
+        self.onError.value?(error)
+        assert(
+            self.onError.value != nil,
+            "An Error was thrown but ignored:\n\(String(describing: error))"
+        )
     }
     
     public func setOnWrite(_ newValue: WriteTransform?) {

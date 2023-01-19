@@ -38,7 +38,6 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     @StateObject private var onError: SecretBox<OnError?>
     
     @FetchRequest public var request: FetchedResults<In>
-    @Environment(\.errorResponder) private var errorResponder
 
     public init(sort:      [SortDescriptor<In>] = [],
                 predicate: NSPredicate? = nil,
@@ -70,8 +69,11 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
                     return
                 }
                 guard let error = onWrite(cd, newValue).error else { return }
-                let errorHandler = self.onError.value ?? self.errorResponder
-                errorHandler(error)
+                self.onError.value?(error)
+                assert(
+                    self.onError.value != nil,
+                    "An Error was thrown but ignored:\n\(String(describing: error))"
+                )
             }
         }
     }

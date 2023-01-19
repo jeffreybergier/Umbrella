@@ -38,7 +38,7 @@ public struct DEBUG_FakeErrorsModifier: ViewModifier {
     @State private var iteration = 0
     @State private var timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
     
-    @Environment(\.errorResponder) private var errorChain
+    @ErrorStorage private var errors
     
     private let errorProducer: (Int) -> Error
 
@@ -49,7 +49,7 @@ public struct DEBUG_FakeErrorsModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .onReceive(self.timer) { _ in
-                self.errorChain(self.errorProducer(self.iteration))
+                self.errors.append(self.errorProducer(self.iteration))
                 self.iteration += 1
             }
     }
