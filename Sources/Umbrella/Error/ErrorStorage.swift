@@ -66,17 +66,25 @@ extension ErrorStorage {
             self.rawStorage.error(for: key)
         }
         public func append(_ error: Error) {
-            /// HACK because SwiftUI needs to let things settle before trying to present next error
+            // HACK because SwiftUI needs to let things settle before trying to present next error
             DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
             { [rawStorage, context] in
                 rawStorage.append(error, for: context)
             }
         }
         public func remove(_ key: Identifier) {
-            self.rawStorage.remove(key, for: self.context)
+            // HACK to prevent purple warnings
+            DispatchQueue.main.async
+            { [rawStorage, context] in
+                rawStorage.remove(key, for: context)
+            }
         }
         public func removeAll() {
-            self.rawStorage.removeAll(self.context)
+            // HACK to prevent purple warnings
+            DispatchQueue.main.async
+            { [rawStorage, context] in
+                rawStorage.removeAll(context)
+            }
         }
     }
     
