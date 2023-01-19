@@ -79,8 +79,6 @@ extension View {
     }
 }
 
-/// Cross-platform environment value for TintColor
-@available(*, deprecated, message: "Is this used?")
 public struct EnvironmentTintColor: EnvironmentKey {
     public static var defaultValue: Color = {
         #if os(macOS)
@@ -94,7 +92,7 @@ public struct EnvironmentTintColor: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    @available(*, deprecated, message: "Is this used?")
+    /// Cross-platform environment value for TintColor
     public var tintColor: Color {
         self[EnvironmentTintColor.self]
     }
