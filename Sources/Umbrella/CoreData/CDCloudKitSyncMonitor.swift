@@ -36,7 +36,7 @@ import CloudKit
 @available(iOS 14.0, OSX 11.0, *)
 public class CDCloudKitSyncMonitor: ObservableObject {
     
-    public var progressBox: ObserveBox<ContinousProgress> = .init(.init())
+    public var progress: ContinousProgress = .init()
     
     private let syncName = NSPersistentCloudKitContainer.eventChangedNotification
     private let accountName = Notification.Name.CKAccountChanged
@@ -67,7 +67,7 @@ public class CDCloudKitSyncMonitor: ObservableObject {
                 self.objectWillChange.send()
                 if let error = error {
                     NSLog(String(describing: error))
-                    self.progressBox.value.errors.append(error)
+                    self.progress.errors.append(error)
                     return
                 }
                 switch account {
@@ -76,7 +76,7 @@ public class CDCloudKitSyncMonitor: ObservableObject {
                 case .couldNotDetermine, .restricted, .noAccount, .temporarilyUnavailable:
                     fallthrough
                 @unknown default:
-                    self.progressBox.value.errors.append(CPAccountStatus(account))
+                    self.progress.errors.append(CPAccountStatus(account))
                 }
             }
         }
@@ -90,14 +90,14 @@ public class CDCloudKitSyncMonitor: ObservableObject {
             self.objectWillChange.send()
             if let error = event.error {
                 NSLog(String(describing: error))
-                self.progressBox.value.errors.append(error)
+                self.progress.errors.append(error)
             }
             if self.io.contains(event.identifier) {
                 self.io.remove(event.identifier)
-                self.progressBox.value.progress.completedUnitCount += 1
+                self.progress.progress.completedUnitCount += 1
             } else {
                 self.io.insert(event.identifier)
-                self.progressBox.value.progress.totalUnitCount += 1
+                self.progress.progress.totalUnitCount += 1
             }
         }
     }
