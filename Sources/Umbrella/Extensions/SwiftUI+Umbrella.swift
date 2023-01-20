@@ -215,17 +215,36 @@ extension View {
         }
     }
     
-    public func alert<A: View, M: View, T, S: StringProtocol>(item: Binding<T?>,
-                                                              title: S,
-                                                 @ViewBuilder actions: (T) -> A,
-                                                 @ViewBuilder message: (T) -> M)
-                                                           -> some View
+    /// Removed redundent `isPresented` and `presenting` arguments
+    public func alert<A: View, M: View, T, S: StringProtocol>(
+        item: Binding<T?>,
+        title: S,
+        @ViewBuilder actions: (T) -> A,
+        @ViewBuilder message: (T) -> M
+    ) -> some View
     {
         self.alert(title,
                    isPresented: item.mapBool(),
                    presenting: item.wrappedValue,
                    actions: actions,
                    message: message)
+    }
+    
+    /// Removed redundent `isPresented` and `presenting` arguments
+    public func confirmationDialog<A: View, M: View, T, S: StringProtocol>(
+        item: Binding<T?>,
+        title: S,
+        titleVisibility: Visibility = .automatic,
+        @ViewBuilder actions: (T) -> A,
+        @ViewBuilder message: (T) -> M
+    ) -> some View
+    {
+        self.confirmationDialog(title,
+                                isPresented: item.mapBool(),
+                                titleVisibility: titleVisibility,
+                                presenting: item.wrappedValue,
+                                actions: actions,
+                                message: message)
     }
 }
 

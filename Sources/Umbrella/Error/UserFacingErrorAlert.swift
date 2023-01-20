@@ -27,6 +27,7 @@
 import SwiftUI
 
 extension View {
+    /// Automatically presents a `UserFacingError`
     public func alert(error binding: Binding<UserFacingError?>,
                       bundle b: any EnvironmentBundleProtocol,
                       onDismiss: ((UserFacingError) -> Void)? = nil)

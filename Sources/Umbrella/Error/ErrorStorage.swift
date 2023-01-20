@@ -27,10 +27,9 @@
 import Foundation
 import SwiftUI
 
-/// Provides ErrorStorage with an identifier that can conforms to `Codable`.
-/// Use `@Environment(\.errorResponder)` to catch errors and then store the identifier
-/// in SceneStorage or other.
-/// Note that Errors are very difficult to encode directly. If the app quits, all of the identifiers will return `NIL`
+/// Use to store Errors across your application. Works in combination with `ErrorStorage.Presenter`
+/// to display errors in your application. This type makes no attempt to encode errors, they are all lost when
+/// the application quits. However, `ErrorStorage.Identifier` can be coded.
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
