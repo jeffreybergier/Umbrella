@@ -31,11 +31,17 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     
     public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out
-    public typealias WriteTransform = (In, Out) -> Result<Void, Swift.Error>
+    
+    public struct Configuration {
+        public var onError: OnError?
+        public var predicate: NSPredicate?
+        public var sortDescriptors: [SortDescriptor<In>]
+    }
     
     private let onRead: ReadTransform
-    @StateObject private var onWrite: SecretBox<WriteTransform?>
     @StateObject private var onError: SecretBox<OnError?>
+    @StateObject private var predicate: SecretBox<NSPredicate?>
+    @StateObject private var sortDescriptors: SecretBox<[SortDescriptor<In>]>
     
     @FetchRequest public var request: FetchedResults<In>
 
@@ -43,55 +49,34 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
                 predicate: NSPredicate? = nil,
                 animation: Animation? = .default,
                 onError:   OnError? = nil,
-                onWrite:   WriteTransform? = nil,
                 onRead:    @escaping ReadTransform)
     {
         self.onRead  = onRead
-        _onWrite     = .init(wrappedValue: .init(onWrite))
-        _onError     = .init(wrappedValue: .init(onError))
-        _request     = .init(entity: In.entity(),
-                             sortDescriptors: sort.map { NSSortDescriptor($0) },
-                             predicate: predicate,
-                             animation: animation)
+        _sortDescriptors = .init(wrappedValue: .init(sort))
+        _onError   = .init(wrappedValue: .init(onError))
+        _predicate = .init(wrappedValue: .init(predicate))
+        _request   = .init(entity: In.entity(),
+                           sortDescriptors: sort.map { NSSortDescriptor($0) },
+                           predicate: predicate,
+                           animation: animation)
     }
     
     public var wrappedValue: some RandomAccessCollection<Out> {
         self.request.lazy.map(self.onRead)
     }
     
-    public var projectedValue: some RandomAccessCollection<Binding<Out>> {
-        self.request.lazy.map { cd in
-            Binding {
-                self.onRead(cd)
-            } set: { newValue in
-                guard let onWrite = self.onWrite.value else {
-                    assertionFailure("Attempted to write value, but no write closure was given")
-                    return
-                }
-                guard let error = onWrite(cd, newValue).error else { return }
-                self.onError.value?(error)
-                assert(
-                    self.onError.value != nil,
-                    "An Error was thrown but ignored:\n\(String(describing: error))"
-                )
-            }
+    public var projectedValue: Configuration {
+        nonmutating set { self.write(newValue) }
+        get {
+            .init(onError: self.onError.value,
+                  predicate: self.predicate.value,
+                  sortDescriptors: self.sortDescriptors.value)
         }
     }
     
-    public func setOnWrite(_ newValue: WriteTransform?) {
-        self.onWrite.value = newValue
+    public func write(_ newValue: Configuration) {
+        self.onError.value = newValue.onError
+        self.request.nsPredicate = newValue.predicate
+        self.request.sortDescriptors = newValue.sortDescriptors
     }
-    
-    public func setOnError(_ newValue: OnError?) {
-        self.onError.value = newValue
-    }
-    
-    public func setPredicate(_ newValue: NSPredicate?) {
-        self.request.nsPredicate = newValue
-    }
-    
-    public func setSortDescriptors(_ newValue: [SortDescriptor<In>] = []) {
-        self.request.sortDescriptors = newValue
-    }
-    
 }
