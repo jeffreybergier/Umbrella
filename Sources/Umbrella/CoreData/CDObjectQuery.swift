@@ -27,7 +27,7 @@ import CoreData
 import SwiftUI
 
 @propertyWrapper
-public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
+public struct CDObjectQuery<In: NSManagedObject, Out: Equatable>: DynamicProperty {
     
     public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out?
@@ -92,13 +92,14 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private func write(_ newValue: Out?) {
-        // TODO: Might need to check to see if value changed
         guard
             let onWrite = self.onWrite.value,
             let object = self.object.value,
-            let newValue
+            let newValue,
+            newValue != self.onRead(object)
         else { return }
-        guard let error = onWrite(object, newValue).error else { return }
+        let result = onWrite(object, newValue)
+        guard let error = result.error else { return }
         self.onError.value?(error)
         assert(
             self.onError.value != nil,
@@ -107,6 +108,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private func setObjectID(_ newValue: URL?) {
+        guard newValue != self.objectID.value else { return }
         self.object.value = nil
         guard
             let url = newValue,
