@@ -33,55 +33,66 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     public typealias ReadTransform = (In) -> Out?
     public typealias WriteTransform = (In?, Out?) -> Result<Void, Swift.Error>
     
+    public struct Value {
+        public var data: Out?
+        public var id: URL?
+        public var onError: OnError?
+        public var onWrite: WriteTransform?
+    }
+    
     private let onRead: ReadTransform
-    @StateObject private var object = NilBox<In>()
-    @StateObject private var onWrite: SecretBox<WriteTransform?>
-    @StateObject private var onError: SecretBox<OnError?>
+    @StateObject private var object  = NilBox<In>()
+    @StateObject private var objectID: SecretBox<URL?>
+    @StateObject private var onWrite:  SecretBox<WriteTransform?>
+    @StateObject private var onError:  SecretBox<OnError?>
     
     @Environment(\.managedObjectContext) private var context
         
-    public init(objectIDURL: URL? = nil,
+    public init(objectID: URL? = nil,
                 onError: OnError? = nil,
                 onWrite: WriteTransform? = nil,
                 onRead: @escaping ReadTransform)
     {
         self.onRead  = onRead
+        _objectID = .init(wrappedValue: .init(objectID))
         _onWrite = .init(wrappedValue: .init(onWrite))
         _onError = .init(wrappedValue: .init(onError))
     }
     
-    public var wrappedValue: Out? {
-        get {
-            guard let cd = self.object.value else { return nil }
-            return self.onRead(cd)
-        }
+    public var wrappedValue: Value {
         nonmutating set { self.write(newValue) }
+        get {
+            var output = Value(data: nil,
+                               id: self.objectID.value,
+                               onError: self.onError.value,
+                               onWrite: self.onWrite.value)
+            guard let input = self.object.value else { return output }
+            output.data = self.onRead(input)
+            return output
+        }
     }
     
     public var projectedValue: Binding<Out>? {
-        guard let value = self.wrappedValue else { return nil }
+        guard
+            let input = self.object.value,
+            let output = self.onRead(input)
+        else { return nil }
         return Binding {
-            return value
+            output
         } set: {
             self.write($0)
         }
     }
     
-    public func setObjectIDURL(_ newValue: URL?) {
-        self.object.value = nil
-        guard
-            let url = newValue,
-            let psc = self.context.persistentStoreCoordinator,
-            let id = psc.managedObjectID(forURIRepresentation: url),
-            let object = self.context.object(with: id) as? In
-        else {
-            // TODO: Create error here
-            return
-        }
-        self.object.value = object
+    private func write(_ newValue: Value) {
+        self.onWrite.value = newValue.onWrite
+        self.onError.value = newValue.onError
+        self.write(newValue.data)
+        self.setObjectID(newValue.id)
     }
     
     private func write(_ newValue: Out?) {
+        // TODO: Might need to check to see if value changed
         guard let onWrite = self.onWrite.value else {
             assertionFailure("Attempted to write value, but no write closure was given")
             return
@@ -94,11 +105,17 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
         )
     }
     
-    public func setOnWrite(_ newValue: WriteTransform?) {
-        self.onWrite.value = newValue
-    }
-    
-    public func setOnError(_ newValue: OnError?) {
-        self.onError.value = newValue
+    private func setObjectID(_ newValue: URL?) {
+        self.object.value = nil
+        guard
+            let url = newValue,
+            let psc = self.context.persistentStoreCoordinator,
+            let id = psc.managedObjectID(forURIRepresentation: url),
+            let object = self.context.object(with: id) as? In
+        else {
+            // TODO: Create error here
+            return
+        }
+        self.object.value = object
     }
 }
