@@ -31,7 +31,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
     public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out?
-    public typealias WriteTransform = (In?, Out?) -> Result<Void, Swift.Error>
+    public typealias WriteTransform = (In, Out) -> Result<Void, Swift.Error>
     
     public struct Value {
         public var data: Out?
@@ -93,8 +93,12 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
     private func write(_ newValue: Out?) {
         // TODO: Might need to check to see if value changed
-        guard let onWrite = self.onWrite.value else { return }
-        guard let error = onWrite(self.object.value, newValue).error else { return }
+        guard
+            let onWrite = self.onWrite.value,
+            let object = self.object.value,
+            let newValue
+        else { return }
+        guard let error = onWrite(object, newValue).error else { return }
         self.onError.value?(error)
         assert(
             self.onError.value != nil,
