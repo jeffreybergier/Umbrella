@@ -93,10 +93,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
     private func write(_ newValue: Out?) {
         // TODO: Might need to check to see if value changed
-        guard let onWrite = self.onWrite.value else {
-            assertionFailure("Attempted to write value, but no write closure was given")
-            return
-        }
+        guard let onWrite = self.onWrite.value else { return }
         guard let error = onWrite(self.object.value, newValue).error else { return }
         self.onError.value?(error)
         assert(
