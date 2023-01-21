@@ -27,7 +27,12 @@
 import Combine
 import CoreData
 
+/// Represents the progress of a subsystem that can run and
+/// produce errors at any time. Sync subsystems often fit this mold.
 public struct ContinousProgress: Identifiable {
+    
+    public typealias Environment = ObserveBox<ContinousProgress>
+    
     /// Because Error and Progress are not Hashable, Equatable,
     /// use ID to tell if something changed
     public var id: UUID = .init()
