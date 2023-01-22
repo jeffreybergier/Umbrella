@@ -43,19 +43,17 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private let onRead: ReadTransform
-    @StateObject private var configuration: SecretBox<Configuration>
-    
+    @StateObject private var configuration: ObserveBox<Configuration>
     @FetchRequest public var request: FetchedResults<In>
-
+    
     public init(sort:      [SortDescriptor<In>] = [],
                 predicate: NSPredicate? = .init(value: false),
                 animation: Animation? = .default,
                 onRead:    @escaping ReadTransform)
     {
         self.onRead    = onRead
-        let config     = Configuration(predicate: predicate,
-                                       sortDescriptors: sort)
-        _configuration = .init(wrappedValue: .init(config))
+        _configuration = .init(wrappedValue: .init(.init(predicate: predicate,
+                                                         sortDescriptors: sort)))
         _request       = .init(entity: In.entity(),
                                sortDescriptors: sort.map { NSSortDescriptor($0) },
                                predicate: predicate,
