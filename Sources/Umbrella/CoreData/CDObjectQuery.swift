@@ -27,24 +27,38 @@ import CoreData
 import SwiftUI
 
 @propertyWrapper
-public struct CDObjectQuery<In: NSManagedObject, Out: Equatable>: DynamicProperty {
+public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
     public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out?
     public typealias WriteTransform = (In, Out) -> Result<Void, Swift.Error>
     
     public struct Value {
-        public var data: Out?
-        public var id: URL?
-        public var onError: OnError?
+        public let data: Out?
+        public var configuration: Configuration = .init()
+        public init(data: Out? = nil, configuration: Configuration) {
+            self.data = data
+            self.configuration = configuration
+        }
+    }
+    
+    public struct Configuration {
+        public var objectID: URL?
         public var onWrite: WriteTransform?
+        public var onError: OnError?
+        public init(objectID: URL? = nil,
+                    onWrite: WriteTransform? = nil,
+                    onError: OnError? = nil)
+        {
+            self.objectID = objectID
+            self.onWrite = onWrite
+            self.onError = onError
+        }
     }
     
     private let onRead: ReadTransform
-    @StateObject private var object  = NilBox<In>()
-    @StateObject private var objectID: SecretBox<URL?>
-    @StateObject private var onWrite:  SecretBox<WriteTransform?>
-    @StateObject private var onError:  SecretBox<OnError?>
+    @StateObject private var object = NilBox<In>()
+    @StateObject private var configuration: ObserveBox<Configuration>
     
     @Environment(\.managedObjectContext) private var context
         
@@ -54,24 +68,25 @@ public struct CDObjectQuery<In: NSManagedObject, Out: Equatable>: DynamicPropert
                 onRead: @escaping ReadTransform)
     {
         self.onRead  = onRead
-        _objectID = .init(wrappedValue: .init(objectID))
-        _onWrite = .init(wrappedValue: .init(onWrite))
-        _onError = .init(wrappedValue: .init(onError))
+        _configuration = .init(wrappedValue: .init(.init(objectID: objectID,
+                                                         onWrite: onWrite,
+                                                         onError: onError)))
     }
     
+    /// Provides read only access to the value and read/write access to the configuration.
+    /// To write to the value use the $ prefix
     public var wrappedValue: Value {
-        nonmutating set { self.write(newValue) }
+        nonmutating set { self.write(newValue.configuration) }
         get {
-            var output = Value(data: nil,
-                               id: self.objectID.value,
-                               onError: self.onError.value,
-                               onWrite: self.onWrite.value)
-            guard let input = self.object.value else { return output }
-            output.data = self.onRead(input)
-            return output
+            guard let input = self.object.value else {
+                return .init(configuration: self.configuration.value)
+            }
+            return .init(data: self.onRead(input),
+                         configuration: self.configuration.value)
         }
     }
     
+    /// Gives read/write access to the value
     public var projectedValue: Binding<Out>? {
         guard
             let input = self.object.value,
@@ -84,41 +99,40 @@ public struct CDObjectQuery<In: NSManagedObject, Out: Equatable>: DynamicPropert
         }
     }
     
-    private func write(_ newValue: Value) {
-        self.onWrite.value = newValue.onWrite
-        self.onError.value = newValue.onError
-        self.write(newValue.data)
-        self.setObjectID(newValue.id)
+    private func write(_ newValue: Configuration) {
+        let oldID = self.configuration.value.objectID
+        self.configuration.value = newValue
+        guard newValue.objectID != oldID else { return }
+        self.updateCoreData()
     }
     
-    private func write(_ newValue: Out?) {
+    private func updateCoreData() {
         guard
-            let onWrite = self.onWrite.value,
-            let object = self.object.value,
-            let newValue,
-            newValue != self.onRead(object)
-        else { return }
-        let result = onWrite(object, newValue)
-        guard let error = result.error else { return }
-        self.onError.value?(error)
-        assert(
-            self.onError.value != nil,
-            "An Error was thrown but ignored:\n\(String(describing: error))"
-        )
-    }
-    
-    private func setObjectID(_ newValue: URL?) {
-        guard newValue != self.objectID.value else { return }
-        self.object.value = nil
-        guard
-            let url = newValue,
+            let url = self.configuration.value.objectID,
             let psc = self.context.persistentStoreCoordinator,
             let id = psc.managedObjectID(forURIRepresentation: url),
             let object = self.context.object(with: id) as? In
         else {
             // TODO: Create error here
+            self.object.value = nil
             return
         }
         self.object.value = object
+    }
+    
+    private func write(_ newValue: Out?) {
+        let config = self.configuration.value
+        guard
+            let onWrite = config.onWrite,
+            let object = self.object.value,
+            let newValue
+        else { return }
+        let result = onWrite(object, newValue)
+        guard let error = result.error else { return }
+        config.onError?(error)
+        assert(
+            config.onError != nil,
+            "An Error was thrown but ignored:\n\(String(describing: error))"
+        )
     }
 }
