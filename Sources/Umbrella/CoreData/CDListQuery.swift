@@ -43,7 +43,7 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private let onRead: ReadTransform
-    @StateObject private var configuration: ObserveBox<Configuration>
+    @State private var configuration: Configuration
     @FetchRequest public var request: FetchedResults<In>
     
     public init(sort:      [SortDescriptor<In>] = [],
@@ -52,8 +52,8 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
                 onRead:    @escaping ReadTransform)
     {
         self.onRead    = onRead
-        _configuration = .init(wrappedValue: .init(.init(predicate: predicate,
-                                                         sortDescriptors: sort)))
+        _configuration = .init(wrappedValue: .init(predicate: predicate,
+                                                   sortDescriptors: sort))
         _request       = .init(entity: In.entity(),
                                sortDescriptors: sort.map { NSSortDescriptor($0) },
                                predicate: predicate,
@@ -64,7 +64,7 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
         nonmutating set { self.write(newValue.configuration) }
         get {
             .init(data: self.request.lazy.map(self.onRead),
-                  configuration: self.configuration.value)
+                  configuration: self.configuration)
         }
     }
     
@@ -76,13 +76,14 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private func write(_ newValue: Configuration) {
-        guard self.configuration.value != newValue else { return }
-        self.configuration.value = newValue
+        let oldConfiguration = self.configuration
+        self.configuration = newValue
+        guard oldConfiguration != newValue else { return }
         self.updateCoreData()
     }
     
     private func updateCoreData() {
-        let newValue = self.configuration.value
+        let newValue = self.configuration
         self.request.nsPredicate = newValue.predicate
         self.request.sortDescriptors = newValue.sortDescriptors
     }

@@ -57,8 +57,8 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private let onRead: ReadTransform
+    @State private var configuration: Configuration
     @StateObject private var object = NilBox<In>()
-    @StateObject private var configuration: ObserveBox<Configuration>
     
     @Environment(\.managedObjectContext) private var context
         
@@ -68,9 +68,9 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
                 onRead: @escaping ReadTransform)
     {
         self.onRead  = onRead
-        _configuration = .init(wrappedValue: .init(.init(objectID: objectID,
-                                                         onWrite: onWrite,
-                                                         onError: onError)))
+        _configuration = .init(wrappedValue: .init(objectID: objectID,
+                                                   onWrite: onWrite,
+                                                   onError: onError))
     }
     
     /// Provides read only access to the value and read/write access to the configuration.
@@ -79,10 +79,10 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
         nonmutating set { self.write(newValue.configuration) }
         get {
             guard let input = self.object.value else {
-                return .init(configuration: self.configuration.value)
+                return .init(configuration: self.configuration)
             }
             return .init(data: self.onRead(input),
-                         configuration: self.configuration.value)
+                         configuration: self.configuration)
         }
     }
     
@@ -100,15 +100,15 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private func write(_ newValue: Configuration) {
-        let oldID = self.configuration.value.objectID
-        self.configuration.value = newValue
+        let oldID = self.configuration.objectID
+        self.configuration = newValue
         guard newValue.objectID != oldID else { return }
         self.updateCoreData()
     }
     
     private func updateCoreData() {
         guard
-            let url = self.configuration.value.objectID,
+            let url = self.configuration.objectID,
             let psc = self.context.persistentStoreCoordinator,
             let id = psc.managedObjectID(forURIRepresentation: url),
             let object = self.context.object(with: id) as? In
@@ -121,7 +121,7 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private func write(_ newValue: Out?) {
-        let config = self.configuration.value
+        let config = self.configuration
         guard
             let onWrite = config.onWrite,
             let object = self.object.value,
