@@ -27,7 +27,6 @@
 import CoreData
 import Combine
 import CloudKit
-import Collections
 
 // Highly inspired by
 // https://github.com/ggruen/CloudKitSyncMonitor/blob/main/Sources/CloudKitSyncMonitor/SyncMonitor.swift
@@ -35,10 +34,9 @@ import Collections
 /// Shows continuous progress of CloudKit syncing via NSPersistentCloudKitContainer.
 /// Note, this class is not tested because it relies on NSNotificationCenter and other singletons.
 @available(iOS 14.0, OSX 11.0, *)
-public class CloudKitContainerContinuousProgress: ContinousProgress {    
+public class CDCloudKitSyncMonitor: ObservableObject {
     
-    public let progress: Progress
-    public var errors: Deque<CPError> = .init()
+    public var progressBox: ObserveBox<ContinousProgress> = .init(.init())
     
     private let syncName = NSPersistentCloudKitContainer.eventChangedNotification
     private let accountName = Notification.Name.CKAccountChanged
@@ -46,8 +44,6 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
     
     /// If container is not NSPersistentCloudKitContainer this class never shows any progress.
     public init(_ container: NSPersistentContainer) {
-        self.progress = .init(totalUnitCount: 0)
-        self.progress.completedUnitCount = 0
         guard container is NSPersistentCloudKitContainer else {
             NSLog("CloudKitContainerContinuousProgress can only be show progress of sync with NSPersistentCloudKitContainer")
             return
@@ -71,16 +67,16 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
                 self.objectWillChange.send()
                 if let error = error {
                     NSLog(String(describing: error))
-                    self.errors.append(Error.accountStatus(.couldNotDetermine))
+                    self.progressBox.value.errors.append(error)
                     return
                 }
                 switch account {
                 case .available:
-                    break
+                    return
                 case .couldNotDetermine, .restricted, .noAccount, .temporarilyUnavailable:
                     fallthrough
                 @unknown default:
-                    self.errors.append(Error.accountStatus(.init(account)))
+                    self.progressBox.value.errors.append(CPAccountStatus(account))
                 }
             }
         }
@@ -94,14 +90,14 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
             self.objectWillChange.send()
             if let error = event.error {
                 NSLog(String(describing: error))
-                self.errors.append(Error.sync(error as NSError))
+                self.progressBox.value.errors.append(error)
             }
             if self.io.contains(event.identifier) {
                 self.io.remove(event.identifier)
-                self.progress.completedUnitCount += 1
+                self.progressBox.value.progress.completedUnitCount += 1
             } else {
                 self.io.insert(event.identifier)
-                self.progress.totalUnitCount += 1
+                self.progressBox.value.progress.totalUnitCount += 1
             }
         }
     }
@@ -109,6 +105,18 @@ public class CloudKitContainerContinuousProgress: ContinousProgress {
     deinit {
         NotificationCenter.default.removeObserver(self, name: self.syncName, object: nil)
         NotificationCenter.default.removeObserver(self, name: self.accountName, object: nil)
+    }
+}
+
+public enum CPAccountStatus: Int, CustomNSError {
+    case couldNotDetermine = 0
+    case restricted = 2
+    case noAccount = 3
+    case temporarilyUnavailable = 4
+    
+    public var errorCode: Int { self.rawValue }
+    public static var errorDomain: String {
+        "com.saturdayapps.Umbrella.ContinuousProgressError"
     }
 }
 

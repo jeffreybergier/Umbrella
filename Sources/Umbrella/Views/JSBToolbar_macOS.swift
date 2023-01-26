@@ -55,6 +55,7 @@ public struct JSBToolbar_macOS: ViewModifier {
     }
     
     public func body(content: Content) -> some View {
+        #if os(macOS)
         VStack {
             self.fakeToolbar
                 .padding()
@@ -62,6 +63,9 @@ public struct JSBToolbar_macOS: ViewModifier {
             content
             Spacer()
         }
+        #else
+        Text("JSBToolbar_macOS unavailable")
+        #endif
     }
     
     private var fakeToolbar: some View {

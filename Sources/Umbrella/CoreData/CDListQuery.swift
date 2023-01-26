@@ -27,69 +27,64 @@ import CoreData
 import SwiftUI
 
 @propertyWrapper
-public struct CDListQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
+public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     
-    public typealias OnError = (E) -> Void
+    public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out
-    public typealias WriteTransform = (In, Out) -> Result<Void, E>
+    
+    public struct Value<C> {
+        public let data: C
+        public var configuration: Configuration
+    }
+    
+    public struct Configuration: Equatable {
+        public var predicate: NSPredicate?
+        public var sortDescriptors: [SortDescriptor<In>] = []
+    }
     
     private let onRead: ReadTransform
-    @StateObject private var onWrite: SecretBox<WriteTransform?>
-    @StateObject private var onError: SecretBox<OnError?>
-    
+    @State private var configuration: Configuration
     @FetchRequest public var request: FetchedResults<In>
-
+    
     public init(sort:      [SortDescriptor<In>] = [],
-                predicate: NSPredicate? = nil,
+                predicate: NSPredicate? = .init(value: false),
                 animation: Animation? = .default,
-                onError:   OnError? = nil,
-                onWrite:   WriteTransform? = nil,
                 onRead:    @escaping ReadTransform)
     {
-        self.onRead  = onRead
-        _onWrite     = .init(wrappedValue: .init(onWrite))
-        _onError     = .init(wrappedValue: .init(onError))
-        _request     = .init(entity: In.entity(),
-                             sortDescriptors: sort.map { NSSortDescriptor($0) },
-                             predicate: predicate,
-                             animation: animation)
+        self.onRead    = onRead
+        _configuration = .init(wrappedValue: .init(predicate: predicate,
+                                                   sortDescriptors: sort))
+        _request       = .init(entity: In.entity(),
+                               sortDescriptors: sort.map { NSSortDescriptor($0) },
+                               predicate: predicate,
+                               animation: animation)
     }
     
-    public var wrappedValue: some RandomAccessCollection<Out> {
-        TransformCollection(collection: self.request) { cd in
-            self.onRead(cd)
+    public var wrappedValue: Value<some RandomAccessCollection<Out>> {
+        nonmutating set { self.write(newValue.configuration) }
+        get {
+            .init(data: self.request.lazy.map(self.onRead),
+                  configuration: self.configuration)
         }
     }
     
-    public var projectedValue: some RandomAccessCollection<Binding<Out>> {
-        TransformCollection(collection: self.request) { cd in
-            Binding {
-                self.onRead(cd)
-            } set: { newValue in
-                guard let onWrite = self.onWrite.value else {
-                    assertionFailure("Attempted to write value, but no write closure was given")
-                    return
-                }
-                guard let error = onWrite(cd, newValue).error else { return }
-                self.onError.value?(error)
-            }
-        }
+    private let needsUpdate = SecretBox(true)
+    public func update() {
+        guard self.needsUpdate.value else { return }
+        self.needsUpdate.value = false
+        self.updateCoreData()
     }
     
-    public func setOnWrite(_ newValue: WriteTransform?) {
-        self.onWrite.value = newValue
+    private func write(_ newValue: Configuration) {
+        let oldConfiguration = self.configuration
+        self.configuration = newValue
+        guard oldConfiguration != newValue else { return }
+        self.updateCoreData()
     }
     
-    public func setOnError(_ newValue: OnError?) {
-        self.onError.value = newValue
+    private func updateCoreData() {
+        let newValue = self.configuration
+        self.request.nsPredicate = newValue.predicate
+        self.request.sortDescriptors = newValue.sortDescriptors
     }
-    
-    public func setPredicate(_ newValue: NSPredicate?) {
-        self.request.nsPredicate = newValue
-    }
-    
-    public func setSortDescriptors(_ newValue: [SortDescriptor<In>] = []) {
-        self.request.sortDescriptors = newValue
-    }
-    
 }

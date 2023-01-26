@@ -79,8 +79,6 @@ extension View {
     }
 }
 
-/// Cross-platform environment value for TintColor
-@available(*, deprecated, message: "Is this used?")
 public struct EnvironmentTintColor: EnvironmentKey {
     public static var defaultValue: Color = {
         #if os(macOS)
@@ -94,7 +92,7 @@ public struct EnvironmentTintColor: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    @available(*, deprecated, message: "Is this used?")
+    /// Cross-platform environment value for TintColor
     public var tintColor: Color {
         self[EnvironmentTintColor.self]
     }
@@ -217,17 +215,36 @@ extension View {
         }
     }
     
-    public func alert<A: View, M: View, T, S: StringProtocol>(item: Binding<T?>,
-                                                              title: S,
-                                                 @ViewBuilder actions: (T) -> A,
-                                                 @ViewBuilder message: (T) -> M)
-                                                           -> some View
+    /// Removed redundent `isPresented` and `presenting` arguments
+    public func alert<A: View, M: View, T, S: StringProtocol>(
+        item: Binding<T?>,
+        title: S,
+        @ViewBuilder actions: (T) -> A,
+        @ViewBuilder message: (T) -> M
+    ) -> some View
     {
         self.alert(title,
                    isPresented: item.mapBool(),
                    presenting: item.wrappedValue,
                    actions: actions,
                    message: message)
+    }
+    
+    /// Removed redundent `isPresented` and `presenting` arguments
+    public func confirmationDialog<A: View, M: View, T, S: StringProtocol>(
+        item: Binding<T?>,
+        title: S,
+        titleVisibility: Visibility = .automatic,
+        @ViewBuilder actions: (T) -> A,
+        @ViewBuilder message: (T) -> M
+    ) -> some View
+    {
+        self.confirmationDialog(title,
+                                isPresented: item.mapBool(),
+                                titleVisibility: titleVisibility,
+                                presenting: item.wrappedValue,
+                                actions: actions,
+                                message: message)
     }
 }
 

@@ -28,7 +28,7 @@ import SwiftUI
 
 public struct SceneContext: EnvironmentKey {
     
-    public enum Value {
+    public enum Value: Codable, Hashable {
         case normal
         case scene(id: String)
         case extensionShare

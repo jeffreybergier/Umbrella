@@ -26,7 +26,7 @@
 
 import Foundation
 
-/// Use with `UserFacingErrorAlert` to easily present errors to the user
+/// Use with `View.alert(error: Binding<UserFacingError?>)` to easily present errors to the user
 public protocol UserFacingError: CustomNSError {
     /// Default implementation is "Error"
     var title: LocalizationKey { get }

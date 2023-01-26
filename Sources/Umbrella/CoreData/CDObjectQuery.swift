@@ -27,74 +27,112 @@ import CoreData
 import SwiftUI
 
 @propertyWrapper
-public struct CDObjectQuery<In: NSManagedObject, Out, E: Error>: DynamicProperty {
+public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
-    public typealias OnError = (E) -> Void
+    public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out?
-    public typealias WriteTransform = (In?, Out?) -> Result<Void, E>
-        
-    @Environment(\.managedObjectContext) private var context
+    public typealias WriteTransform = (In, Out) -> Result<Void, Swift.Error>
+    
+    public struct Value {
+        public let data: Out?
+        public var configuration: Configuration = .init()
+        public init(data: Out? = nil, configuration: Configuration) {
+            self.data = data
+            self.configuration = configuration
+        }
+    }
+    
+    public struct Configuration {
+        public var objectID: URL?
+        public var onWrite: WriteTransform?
+        public var onError: OnError?
+        public init(objectID: URL? = nil,
+                    onWrite: WriteTransform? = nil,
+                    onError: OnError? = nil)
+        {
+            self.objectID = objectID
+            self.onWrite = onWrite
+            self.onError = onError
+        }
+    }
     
     private let onRead: ReadTransform
+    @State private var configuration: Configuration
     @StateObject private var object = NilBox<In>()
-    @StateObject private var onWrite: SecretBox<WriteTransform?>
-    @StateObject private var onError: SecretBox<OnError?>
+    
+    @Environment(\.managedObjectContext) private var context
         
-    public init(objectIDURL: URL? = nil,
+    public init(objectID: URL? = nil,
                 onError: OnError? = nil,
                 onWrite: WriteTransform? = nil,
                 onRead: @escaping ReadTransform)
     {
         self.onRead  = onRead
-        _onWrite = .init(wrappedValue: .init(onWrite))
-        _onError = .init(wrappedValue: .init(onError))
+        _configuration = .init(wrappedValue: .init(objectID: objectID,
+                                                   onWrite: onWrite,
+                                                   onError: onError))
     }
     
-    public var wrappedValue: Out? {
+    /// Provides read only access to the value and read/write access to the configuration.
+    /// To write to the value use the $ prefix
+    public var wrappedValue: Value {
+        nonmutating set { self.write(newValue.configuration) }
         get {
-            guard let cd = self.object.value else { return nil }
-            return self.onRead(cd)
+            guard let input = self.object.value else {
+                return .init(configuration: self.configuration)
+            }
+            return .init(data: self.onRead(input),
+                         configuration: self.configuration)
         }
-        nonmutating set { self.write(newValue: newValue) }
     }
     
+    /// Gives read/write access to the value
     public var projectedValue: Binding<Out>? {
-        guard let value = self.wrappedValue else { return nil }
+        guard
+            let input = self.object.value,
+            let output = self.onRead(input)
+        else { return nil }
         return Binding {
-            return value
+            output
         } set: {
-            self.write(newValue: $0)
+            self.write($0)
         }
     }
     
-    public func setObjectIDURL(_ newValue: URL?) {
-        self.object.value = nil
+    private func write(_ newValue: Configuration) {
+        let oldID = self.configuration.objectID
+        self.configuration = newValue
+        guard newValue.objectID != oldID else { return }
+        self.updateCoreData()
+    }
+    
+    private func updateCoreData() {
         guard
-            let url = newValue,
+            let url = self.configuration.objectID,
             let psc = self.context.persistentStoreCoordinator,
             let id = psc.managedObjectID(forURIRepresentation: url),
             let object = self.context.object(with: id) as? In
         else {
             // TODO: Create error here
+            self.object.value = nil
             return
         }
         self.object.value = object
     }
     
-    private func write(newValue: Out?) {
-        guard let onWrite = self.onWrite.value else {
-            assertionFailure("Attempted to write value, but no write closure was given")
-            return
-        }
-        guard let error = onWrite(self.object.value, newValue).error else { return }
-        self.onError.value?(error)
-    }
-    
-    public func setOnWrite(_ newValue: WriteTransform?) {
-        self.onWrite.value = newValue
-    }
-    
-    public func setOnError(_ newValue: OnError?) {
-        self.onError.value = newValue
+    private func write(_ newValue: Out?) {
+        let config = self.configuration
+        guard
+            let onWrite = config.onWrite,
+            let object = self.object.value,
+            let newValue
+        else { return }
+        let result = onWrite(object, newValue)
+        guard let error = result.error else { return }
+        config.onError?(error)
+        assert(
+            config.onError != nil,
+            "An Error was thrown but ignored:\n\(String(describing: error))"
+        )
     }
 }

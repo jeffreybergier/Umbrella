@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2021/02/19.
+//  Created by Jeffrey Bergier on 2022/02/20.
 //
 //  MIT License
 //
@@ -24,39 +24,34 @@
 //  SOFTWARE.
 //
 
-import Foundation
+import SwiftUI
 
-/// Conform to this protoocal to help systemize your conversion to and from CodableError
-public protocol CodableErrorConvertible {
-    init?(decode: CodableError)
-    var encode: CodableError { get }
+// Useful regex for finding strings
+// (["'])(?:(?=(\\?))\2.)*?\1
+
+// TODO: Change LocalizationKey into a real type?
+public typealias LocalizedString = String
+public typealias LocalizationKey = String
+
+public struct EnvironmentCustomBundle: EnvironmentKey {
+    public static var defaultValue: Bundle = .main
 }
 
-/// Use to store errors in something that requires codable such as `SceneStorage` / `AppStorage`
-public struct CodableError: Codable, CustomNSError, Identifiable, Hashable {
-    
-    public var id: UUID = .init()
-    public var errorCode: Int
-    public var errorDomain: String
-    public var arbitraryData: Data?
-    
-    public init(domain: String,
-                code: Int,
-                arbitraryData: Data? = nil)
-    {
-        self.errorCode = code
-        self.errorDomain = domain
-        self.arbitraryData = arbitraryData
+extension EnvironmentValues {
+    public var bundle: Bundle {
+        get { self[EnvironmentCustomBundle.self] }
+        set { self[EnvironmentCustomBundle.self] = newValue }
     }
-    
-    public init(_ error: Swift.Error) {
-        assert(type(of: error) != CodableError.self)
-        self.init(error as NSError)
+}
+
+extension Bundle {
+    public func jsb_image(named: String) -> Image? {
+        return Image(named, bundle: self)
     }
-    
-    public init(_ error: NSError) {
-        self.errorCode = error.code
-        self.errorDomain = error.domain
-        self.arbitraryData = String(describing: error).data(using: .utf8)
+    public func jsb_localized(key: LocalizationKey) -> LocalizedString {
+        return self.localizedString(forKey: key, value: nil, table: nil)
+    }
+    public func jsb_url(name: String, extension: String) -> URL? {
+        return self.url(forResource: name, withExtension: `extension`)
     }
 }
