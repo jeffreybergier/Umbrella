@@ -33,28 +33,25 @@ import SwiftUI
 public typealias LocalizedString = String
 public typealias LocalizationKey = String
 
-/// Use to localize strings, find images, or other assets from Bundles placed into the environment.
-/// Implement class that conforms to `EnvironmentBundleProtocol` and then place it in the environment.
-@propertyWrapper public struct EnvironmentBundle<B: EnvironmentBundleProtocol>: DynamicProperty {
-    @EnvironmentObject private var bundle: B
-    public init() {}
-    public var wrappedValue: B {
-        return self.bundle
+public struct EnvironmentCustomBundle: EnvironmentKey {
+    public static var defaultValue: Bundle = .main
+}
+
+extension EnvironmentValues {
+    public var bundle: Bundle {
+        get { self[EnvironmentCustomBundle.self] }
+        set { self[EnvironmentCustomBundle.self] = newValue }
     }
 }
 
-public protocol EnvironmentBundleProtocol: ObservableObject {
-    var bundle: Bundle { get }
-}
-
-extension EnvironmentBundleProtocol {
-    public func image(named: String) -> Image? {
-        return Image(named, bundle: self.bundle)
+extension Bundle {
+    public func jsb_image(named: String) -> Image? {
+        return Image(named, bundle: self)
     }
-    public func localized(key: LocalizationKey) -> LocalizedString {
-        return self.bundle.localizedString(forKey: key, value: nil, table: nil)
+    public func jsb_localized(key: LocalizationKey) -> LocalizedString {
+        return self.localizedString(forKey: key, value: nil, table: nil)
     }
-    public func url(name: String, extension: String) -> URL? {
-        return self.bundle.url(forResource: name, withExtension: `extension`)
+    public func jsb_url(name: String, extension: String) -> URL? {
+        return self.url(forResource: name, withExtension: `extension`)
     }
 }

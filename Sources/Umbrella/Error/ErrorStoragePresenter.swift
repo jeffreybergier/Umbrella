@@ -27,7 +27,7 @@
 import SwiftUI
 
 extension ErrorStorage {
-    public struct Presenter<B: EnvironmentBundleProtocol>: ViewModifier {
+    public struct Presenter: ViewModifier {
         
         private let router: (Error) -> any UserFacingError
         private let onDismiss: (Error) -> Void
@@ -53,9 +53,9 @@ extension ErrorStorage {
                                toPresent: self.$toPresent)
                 )
                 .modifier(
-                    _Presenter<B>(toPresent: self.$toPresent,
-                                   router: self.router,
-                                   onDismiss: self.onDismiss)
+                    _Presenter(toPresent: self.$toPresent,
+                               router: self.router,
+                               onDismiss: self.onDismiss)
                 )
         }
         
@@ -91,14 +91,14 @@ extension ErrorStorage {
         }
     }
     
-    internal struct _Presenter<B: EnvironmentBundleProtocol>: ViewModifier {
+    internal struct _Presenter: ViewModifier {
         
         private let router: (Error) -> any UserFacingError
         private let onDismiss: (Error) -> Void
         @Binding private var toPresent: ErrorStorage.Identifier?
         
         @ErrorStorage private var storage
-        @EnvironmentObject private var bundle: B
+        @Environment(\.bundle) private var bundle
         
         internal init(toPresent:   Binding<ErrorStorage.Identifier?>,
                       router:    @escaping (Error) -> any UserFacingError,

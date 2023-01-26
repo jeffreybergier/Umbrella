@@ -29,30 +29,30 @@ import SwiftUI
 extension View {
     /// Automatically presents a `UserFacingError`
     public func alert(error binding: Binding<UserFacingError?>,
-                      bundle b: any EnvironmentBundleProtocol,
+                      bundle b: Bundle = .main,
                       onDismiss: ((UserFacingError) -> Void)? = nil)
                    -> some View
     {
-        let title = b.localized(key: binding.wrappedValue?.title ?? "")
+        let title = b.jsb_localized(key: binding.wrappedValue?.title ?? "")
         return self.alert(item: binding, title: title) { error in
             ForEach(error.options) { option in
                 if option.isDestructive {
-                    Button(b.localized(key: option.title), role: .destructive) {
+                    Button(b.jsb_localized(key: option.title), role: .destructive) {
                         option.perform()
                         onDismiss?(error)
                     }
                 } else {
-                    Button(b.localized(key: option.title)) {
+                    Button(b.jsb_localized(key: option.title)) {
                         option.perform()
                         onDismiss?(error)
                     }
                 }
             }
-            Button(b.localized(key: error.dismissTitle), role: .cancel) {
+            Button(b.jsb_localized(key: error.dismissTitle), role: .cancel) {
                 onDismiss?(error)
             }
         } message: {
-            Text(b.localized(key: $0.message))
+            Text(b.jsb_localized(key: $0.message))
         }
     }
 }
