@@ -29,7 +29,6 @@ import SwiftUI
 @propertyWrapper
 public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     
-    public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out
     
     public struct Value<C> {
