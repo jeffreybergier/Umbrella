@@ -28,15 +28,13 @@ import SwiftUI
 
 @propertyWrapper
 public struct JSBCodableFileStorage<Value: Codable>: DynamicProperty {
-    
-    public typealias OnError = (Error) -> Void
-    
+        
     @JSBFileStorage private var storage: Data?
-    @StateObject private var onError: SecretBox<OnError?>
+    private let onError: OnError?
     
     public init(url: URL, onError: OnError? = nil) {
         _storage = .init(url: url, onError: onError)
-        _onError = .init(wrappedValue: .init(onError))
+        self.onError = onError
     }
     
     public var wrappedValue: Value? {
@@ -78,14 +76,12 @@ public struct JSBCodableFileStorage<Value: Codable>: DynamicProperty {
 @propertyWrapper
 public struct JSBFileStorage: DynamicProperty {
     
-    public typealias OnError = (Error) -> Void
-    
     @StateObject private var filePresenter: JSBFileStoragePresenter
-    @StateObject private var onError: SecretBox<OnError?>
-    
+    private let onError: OnError?
+
     public init(url: URL, onError: OnError? = nil) {
         _filePresenter = .init(wrappedValue: .init(presentedItemURL: url))
-        _onError = .init(wrappedValue: .init(onError))
+        self.onError = onError
     }
     
     public var wrappedValue: Data? {
@@ -94,7 +90,7 @@ public struct JSBFileStorage: DynamicProperty {
             do {
                 try self.filePresenter.update(newValue)
             } catch {
-                self.onError.value?(error)
+                self.onError?(error)
             }
         }
     }
