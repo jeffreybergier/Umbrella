@@ -33,9 +33,6 @@ import ViewInspector
 // TODO: Write JSBToolbar_macOS tests
 // Or don't because its a dirty hack?
 
-extension JSBToolbar_iOS: Inspectable {}
-extension JSBToolbarButtonDone: Inspectable {}
-
 class JSBToolbar_iOS_Tests: AsyncTestCase {
     
     let title  = "Hello World"

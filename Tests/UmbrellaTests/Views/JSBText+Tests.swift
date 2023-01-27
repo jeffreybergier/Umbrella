@@ -29,8 +29,6 @@ import SwiftUI
 import ViewInspector
 import Umbrella
 
-extension JSBText: Inspectable {}
-
 class JSBText_Tests: XCTestCase {
     func test_fallbackKeyFalse() {
         let string = "ABC123"
