@@ -14,8 +14,8 @@ jobs:
     - name: "Xcode Select"
       run: sudo xcode-select -switch /Applications/Xcode_14.2.app && /usr/bin/xcodebuild -version
     - name: "macOS 13"
-      run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.1 -destination "platform=macOS,arch=x86_64"
+      run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.1 -destination "platform=macOS,arch=x86_64" -enableCodeCoverage YES
     - name: "macOS 13 (Mac Catalyst)"
-      run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.1 -destination "platform=macOS,arch=x86_64,variant=Mac Catalyst"
+      run: xcodebuild test -scheme Umbrella-Package -sdk macosx13.1 -destination "platform=macOS,arch=x86_64,variant=Mac Catalyst" -enableCodeCoverage YES
     - name: "iOS 16"
-      run: xcodebuild test -scheme Umbrella-Package -sdk iphonesimulator16.2 -destination "OS=16.2,name=iPhone 8"
+      run: xcodebuild test -scheme Umbrella-Package -sdk iphonesimulator16.2 -destination "OS=16.2,name=iPhone 8" -enableCodeCoverage YES
