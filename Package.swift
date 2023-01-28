@@ -70,7 +70,7 @@ let package = Package(
             ],
             path: "Tests/UmbrellaTests",
             resources: [
-                .copy("Resources"),
+                .copy("Resources/BundleTest.png"),
             ]
         ),
     ]

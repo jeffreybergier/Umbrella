@@ -60,11 +60,10 @@ class CustomBundle_Tests: XCTestCase {
     func test_image() throws {
         let b = self.realBundle
         let url = b.url(forResource: "BundleTest",
-                        withExtension: "png",
-                        subdirectory: "Resources")
-        XCTAssertNotNil(url)
+                        withExtension: "png")
         let image = b.image(named: "BundleTest")
-        XCTAssertNil(image)
+        XCTAssertNotNil(image)
+        XCTAssertNotNil(url)
     }
 }
 
