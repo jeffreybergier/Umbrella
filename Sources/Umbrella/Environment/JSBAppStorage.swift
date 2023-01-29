@@ -35,8 +35,12 @@ public struct JSBAppStorage<Value: Codable>: DynamicProperty {
     
     private let defaultValue: Value
     
-    public init(wrappedValue: Value, _ key: String, onError: OnError? = nil) {
-        _rawValue = .init(key)
+    public init(wrappedValue: Value, _
+                key: String,
+                store: UserDefaults = .standard,
+                onError: OnError? = nil)
+    {
+        _rawValue = .init(key, store: store)
         _helper = .init(wrappedValue: .init(onError))
         self.defaultValue = wrappedValue
     }
