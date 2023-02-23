@@ -59,7 +59,6 @@ public struct JSBToolbar_macOS: ViewModifier {
         VStack {
             self.fakeToolbar
                 .padding()
-                .background(.bar)
             content
             Spacer()
         }
