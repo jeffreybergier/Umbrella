@@ -60,7 +60,6 @@ public struct JSBToolbar_macOS: ViewModifier {
             self.fakeToolbar
                 .padding()
             content
-            Spacer()
         }
         #else
         Text("JSBToolbar_macOS unavailable")
