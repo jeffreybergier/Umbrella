@@ -148,6 +148,33 @@ public struct JSBSizeClass: DynamicProperty {
     #endif
 }
 
+/// Provides a crossplatform form. On macOS `SwiftUI.Form` does not include a scrollview
+/// but on iOS it does. `JSBForm` provides a scrollview on macOS and uses the included one on iOS.
+public struct JSBForm<Content: View>: View {
+    
+    private let content: () -> Content
+    
+    public init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+    
+    #if os(macOS)
+    public var body: some View {
+        ScrollView {
+            Form {
+                self.content()
+            }
+        }
+    }
+    #else
+    public var body: some View {
+        Form {
+            self.content()
+        }
+    }
+    #endif
+}
+
 extension Image {
     public init?(data: Data?) {
         guard let data else { return nil }
