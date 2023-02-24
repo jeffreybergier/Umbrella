@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2022/09/11.
+//  Created by Jeffrey Bergier on 2022/09/10.
 //
 //  MIT License
 //
@@ -25,27 +25,16 @@
 //
 
 import XCTest
-import SwiftUI
-import ViewInspector
+import Combine
 import Umbrella
 
-class JSBSceneStorage_Tests: XCTestCase {
+class IdentBox_Tests: XCTestCase {
     
-    func test_defaultValue() throws {
-        let v = TEST_SceneStorage()
-        let b = try v.inspect().find(button: "Addition")
-        try b.tap()
-        // TODO: This does not work because AppStorage doesn't work in testing
-        // _ = try b.find(button: "NewValue")
-    }
-    
-}
-
-fileprivate struct TEST_SceneStorage: View, Inspectable {
-    @JSBSceneStorage("TESTING") private var storage: String = "Addition"
-    var body: some View {
-        Button(self.storage) {
-            self.storage = "NewValue"
-        }
+    func test_identifiable() {
+        
+        let value = "MyString"
+        XCTAssertNil(value as? any Identifiable)
+        let box = IdentBox(value)
+        XCTAssertNotNil(box as? any Identifiable)
     }
 }

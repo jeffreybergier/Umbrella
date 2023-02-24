@@ -31,6 +31,8 @@ public struct SceneContext: EnvironmentKey {
     public enum Value: Codable, Hashable {
         case normal
         case scene(id: String)
+        case sheet
+        case popover
         case extensionShare
         case extensionWidget
         case extensionKeyboard

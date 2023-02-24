@@ -30,7 +30,6 @@ import WebKit
 /// Provides a basic WKNavigationDelegate with expected behavior for showing simple web views.
 public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
 
-    public typealias OnError = (Swift.Error) -> Void
     public var onError: OnError?
     
     public init(onError: OnError? = nil) {

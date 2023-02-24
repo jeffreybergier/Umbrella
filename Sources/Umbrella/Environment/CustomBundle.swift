@@ -45,13 +45,14 @@ extension EnvironmentValues {
 }
 
 extension Bundle {
-    public func jsb_image(named: String) -> Image? {
-        return Image(named, bundle: self)
+    public func image(named: String) -> JSBImage? {
+        JSBImage.image(named: named, in: self)
     }
-    public func jsb_localized(key: LocalizationKey) -> LocalizedString {
-        return self.localizedString(forKey: key, value: nil, table: nil)
-    }
-    public func jsb_url(name: String, extension: String) -> URL? {
-        return self.url(forResource: name, withExtension: `extension`)
+    public func localized(key: LocalizationKey,
+                          value: String? = nil,
+                          table: String? = nil)
+                       -> LocalizedString
+    {
+        self.localizedString(forKey: key, value: value, table: table)
     }
 }

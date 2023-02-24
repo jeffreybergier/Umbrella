@@ -68,7 +68,10 @@ let package = Package(
                 "TestUmbrella",
                 "ViewInspector",
             ],
-            path: "Tests/UmbrellaTests"
+            path: "Tests/UmbrellaTests",
+            resources: [
+                .copy("Resources/BundleTest.png"),
+            ]
         ),
     ]
 )

@@ -27,6 +27,8 @@
 import Foundation
 import SwiftUI
 
+public typealias OnError = (Error) -> Void
+
 /// Use to store Errors across your application. Works in combination with `ErrorStorage.Presenter`
 /// to display errors in your application. This type makes no attempt to encode errors, they are all lost when
 /// the application quits. However, `ErrorStorage.Identifier` can be coded.
@@ -43,15 +45,13 @@ public struct ErrorStorage: DynamicProperty {
     public static func newEnvironment() -> EnvironmentValue { .init() }
     
     @EnvironmentObject private var storage: EnvironmentValue
-    @Environment(\.sceneContext) private var context
     
     public init() {}
     
     /// Use to detect in your UI if there are Errors to show and what the next error is.
     public var wrappedValue: Value {
-        return .init(all: self.storage.identifiers[self.context, default: []],
-                     rawStorage: self.storage,
-                     context: self.context)
+        return .init(all: self.storage.identifiers,
+                     rawStorage: self.storage)
     }
 }
 
@@ -60,29 +60,28 @@ extension ErrorStorage {
     public struct Value {
         public let all: [Identifier]
         public let rawStorage: EnvironmentValue
-        internal let context: SceneContext.Value
         public func error(for key: Identifier) -> Error? {
             self.rawStorage.error(for: key)
         }
         public func append(_ error: Error) {
             // HACK because SwiftUI needs to let things settle before trying to present next error
             DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
-            { [rawStorage, context] in
-                rawStorage.append(error, for: context)
+            { [rawStorage] in
+                rawStorage.append(error)
             }
         }
         public func remove(_ key: Identifier) {
             // HACK to prevent purple warnings
             DispatchQueue.main.async
-            { [rawStorage, context] in
-                rawStorage.remove(key, for: context)
+            { [rawStorage] in
+                rawStorage.remove(key)
             }
         }
         public func removeAll() {
             // HACK to prevent purple warnings
             DispatchQueue.main.async
-            { [rawStorage, context] in
-                rawStorage.removeAll(context)
+            { [rawStorage] in
+                rawStorage.removeAll()
             }
         }
     }
@@ -90,7 +89,7 @@ extension ErrorStorage {
     public class EnvironmentValue: ObservableObject {
         
         @Published public internal(set) var storage: [Identifier: Error] = [:]
-        @Published public internal(set) var identifiers: [SceneContext.Value: [Identifier]] = [:]
+        @Published public internal(set) var identifiers: [Identifier] = []
         
         public init() {}
         
@@ -98,26 +97,20 @@ extension ErrorStorage {
             self.storage[key]
         }
         
-        public func append(_ error: Error, for context: SceneContext.Value) {
+        public func append(_ error: Error) {
             let id = Identifier()
-            self.identifiers[context, default: []].append(id)
+            self.identifiers.append(id)
             self.storage[id] = error
         }
         
-        public func remove(_ key: Identifier, for context: SceneContext.Value) {
-            self.identifiers[context, default: []].removeAll { key == $0 }
+        public func remove(_ key: Identifier) {
+            self.identifiers.removeAll { key == $0 }
             self.storage.removeValue(forKey: key)
         }
         
-        public func removeAll(_ context: SceneContext.Value? = nil) {
-            if let context {
-                let identifiers = self.identifiers[context, default: []]
-                identifiers.forEach { self.storage.removeValue(forKey: $0) }
-                self.identifiers[context] = []
-            } else {
-                self.storage = [:]
-                self.identifiers = [:]
-            }
+        public func removeAll() {
+            self.storage = [:]
+            self.identifiers = []
         }
     }
 }

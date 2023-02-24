@@ -221,7 +221,7 @@ class Action_Tests: AsyncTestCase {
     }
 }
 
-struct TEST_InnerModifier: ViewModifier, Inspectable {
+struct TEST_InnerModifier: ViewModifier {
     static let text = "InnerModifier"
     func body(content: Self.Content) -> some View {
         VStack {
@@ -231,7 +231,7 @@ struct TEST_InnerModifier: ViewModifier, Inspectable {
     }
 }
 
-struct TEST_OuterModifier: ViewModifier, Inspectable {
+struct TEST_OuterModifier: ViewModifier {
     static let text = "OuterModifier"
     func body(content: Self.Content) -> some View {
         HStack {

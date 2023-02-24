@@ -42,7 +42,7 @@ class GenericWebKitNavigationDelegate_Tests: AsyncTestCase {
     
     func test_didFail() {
         let wait = self.newWait()
-        let closure: GenericWebKitNavigationDelegate.OnError = { error in
+        let closure: OnError = { error in
             let error = error as NSError
             wait { XCTAssertEqual(self.fakeError, error) }
         }
@@ -55,7 +55,7 @@ class GenericWebKitNavigationDelegate_Tests: AsyncTestCase {
     
     func test_didFailProvision() {
         let wait = self.newWait()
-        let closure: GenericWebKitNavigationDelegate.OnError = { error in
+        let closure: OnError = { error in
             let error = error as NSError
             wait { XCTAssertEqual(self.fakeError, error) }
         }

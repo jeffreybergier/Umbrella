@@ -30,19 +30,20 @@ import SwiftUI
 @propertyWrapper
 public struct JSBSceneStorage<Value: Codable>: DynamicProperty {
     
-    // MARK: Property Wrapper Boilerplate
+    @SceneStorage private var rawValue: String?
+    @StateObject  private var helper: CodableStorageHelper<Value>
     
     private let defaultValue: Value
-    @SceneStorage private var storage: String?
     
-    public init(wrappedValue: Value, _ key: String) {
-        _storage = .init(key)
+    public init(wrappedValue: Value, _ key: String, onError: OnError? = nil) {
+        _rawValue = .init(key)
+        _helper = .init(wrappedValue: .init(onError))
         self.defaultValue = wrappedValue
     }
     
     public var wrappedValue: Value {
-        get { self.read() ?? self.defaultValue }
-        nonmutating set { self.write(newValue) }
+        get { self.helper.readCacheOrDecode(self.rawValue) ?? self.defaultValue }
+        nonmutating set { self.rawValue = self.helper.encodeAndCache(newValue) }
     }
     
     public var projectedValue: Binding<Value> {
@@ -51,29 +52,5 @@ public struct JSBSceneStorage<Value: Codable>: DynamicProperty {
         } set: {
             self.wrappedValue = $0
         }
-    }
-    
-    // MARK: Encoding / Decoding
-    
-    // Not sure if storing these helps performance
-    @State private var encoder = PropertyListEncoder()
-    @State private var decoder = PropertyListDecoder()
-    
-    // Not sure if cache actually helps performance
-    @State private var cache: [String: Value] = [:]
-    
-    private func read() -> Value? {
-        guard let string = self.storage else { return nil }
-        if let cache = self.cache[string] { return cache }
-        guard let data = Data(base64Encoded: string) else { return nil }
-        return try? self.decoder.decode(Value.self, from: data)
-    }
-    
-    private func write(_ newValue: Value?) {
-        let data = try? self.encoder.encode(newValue)
-        let string = data?.base64EncodedString()
-        self.storage = string
-        guard let string = string else { return }
-        self.cache[string] = newValue
     }
 }

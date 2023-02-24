@@ -1,5 +1,5 @@
 //
-//  Created by Jeffrey Bergier on 2022/09/11.
+//  Created by Jeffrey Bergier on 2023/01/27.
 //
 //  MIT License
 //
@@ -25,27 +25,51 @@
 //
 
 import XCTest
-import SwiftUI
 import ViewInspector
+import SwiftUI
 import Umbrella
 
-class JSBAppStorage_Tests: XCTestCase {
+class CustomBundle_Tests: XCTestCase {
+    
+    private let mainBundle = Bundle.main
+    private let realBundle = Bundle.module
+    private let customBundle = Bundle()
     
     func test_defaultValue() throws {
-        let v = TEST_AppStorage()
-        let b = try v.inspect().find(button: "Addition")
-        try b.tap()
-        // TODO: This does not work because AppStorage doesn't work in testing
-        // _ = try b.find(button: "NewValue")
+        let v1 = TESTView()
+        let v2 = v1.environment(\.bundle, self.customBundle)
+        let t1 = try v1.inspect().findAll(Text.self).first
+        let t2 = try v2.inspect().findAll(Text.self).first
+        XCTAssertNotNil(t1)
+        XCTAssertNotNil(t2)
+        XCTAssertEqual(v1.bundle, self.mainBundle)
     }
     
+    func test_image_nil() throws {
+        let b = self.realBundle
+        let image = b.image(named: "Nothing")
+        XCTAssertNil(image)
+    }
+    
+    func test_localized_nil() throws {
+        let b = self.realBundle
+        let s = b.localized(key: "Nothing")
+        XCTAssertEqual(s, "Nothing")
+    }
+    
+    func test_image() throws {
+        let b = self.realBundle
+        let url = b.url(forResource: "BundleTest",
+                        withExtension: "png")
+        let image = b.image(named: "BundleTest")
+        XCTAssertNotNil(image)
+        XCTAssertNotNil(url)
+    }
 }
 
-fileprivate struct TEST_AppStorage: View, Inspectable {
-    @JSBAppStorage("TESTING") private var storage: String = "Addition"
+fileprivate struct TESTView: View {
+    @Environment(\.bundle) fileprivate var bundle
     var body: some View {
-        Button(self.storage) {
-            self.storage = "NewValue"
-        }
+        Text(String(describing: self.bundle))
     }
 }

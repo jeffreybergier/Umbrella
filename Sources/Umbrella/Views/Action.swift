@@ -149,6 +149,7 @@ public enum ActionLabelImage: Equatable {
         case .system(let name): return Image(systemName: name)
         }
     }
+    // TODO: Add func image with bundle?
 }
 
 // MARK: Labels

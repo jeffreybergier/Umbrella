@@ -29,7 +29,6 @@ import SwiftUI
 @propertyWrapper
 public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
-    public typealias OnError = (Swift.Error) -> Void
     public typealias ReadTransform = (In) -> Out?
     public typealias WriteTransform = (In, Out) -> Result<Void, Swift.Error>
     
