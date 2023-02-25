@@ -109,14 +109,28 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
         guard
             let url = self.configuration.objectID,
             let psc = self.context.persistentStoreCoordinator,
-            let id = psc.managedObjectID(forURIRepresentation: url),
-            let object = self.context.object(with: id) as? In
+            let id = psc.managedObjectID(forURIRepresentation: url)
         else {
-            // TODO: Create error here
+            // TODO: Insert Error?
+            assertionFailure()
             self.object.value = nil
             return
         }
-        self.object.value = object
+        do {
+            let _object = try self.context.existingObject(with: id)
+            let object = _object as? In
+            // TODO: Insert Error?
+            assert(object != nil)
+            self.object.value = object
+        } catch {
+            self.object.value = nil
+            let onError = self.configuration.onError
+            onError?(error)
+            assert(
+                onError != nil,
+                "An Error was thrown but ignored:\n\(String(describing: error))"
+            )
+        }
     }
     
     private func write(_ newValue: Out?) {
