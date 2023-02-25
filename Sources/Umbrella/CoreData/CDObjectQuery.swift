@@ -26,6 +26,16 @@
 import CoreData
 import SwiftUI
 
+public enum CDObjectQueryError: Int, CustomNSError {
+    
+    case objectNotFound     = -1001
+    case objectTypeMismatch = -1002
+    
+    public static var errorDomain: String { "com.saturdayapps.umbrella.cdobjectquery" }
+    public var errorCode: Int { self.rawValue }
+    public var errorUserInfo: [String : Any] { [:] }
+}
+
 @propertyWrapper
 public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     
@@ -106,46 +116,55 @@ public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private func updateCoreData() {
-        guard
-            let url = self.configuration.objectID,
-            let psc = self.context.persistentStoreCoordinator,
-            let id = psc.managedObjectID(forURIRepresentation: url)
-        else {
-            // TODO: Insert Error?
-            assertionFailure()
+        let onFailure: (Swift.Error?) -> Void = { error in
             self.object.value = nil
+            guard let error = error else { return }
+            let onError = self.configuration.onError
+            assert(onError != nil)
+            onError?(error)
+        }
+        
+        guard let url = self.configuration.objectID else {
+            onFailure(nil)
+            return
+        }
+        guard let psc = self.context.persistentStoreCoordinator else {
+            assertionFailure()
+            onFailure(nil) // TODO: Insert Error?
             return
         }
         do {
-            let _object = try self.context.existingObject(with: id)
-            let object = _object as? In
-            // TODO: Insert Error?
-            assert(object != nil)
+            guard let id = psc.managedObjectID(forURIRepresentation: url) else {
+                onFailure(CDObjectQueryError.objectNotFound)
+                return
+            }
+            let object = try self.context.existingObject(with: id) as? In
+            if object == nil {
+                onFailure(CDObjectQueryError.objectTypeMismatch)
+                return
+            }
             self.object.value = object
         } catch {
-            self.object.value = nil
-            let onError = self.configuration.onError
-            onError?(error)
-            assert(
-                onError != nil,
-                "An Error was thrown but ignored:\n\(String(describing: error))"
-            )
+            onFailure(error)
         }
     }
     
     private func write(_ newValue: Out?) {
         let config = self.configuration
+        let onFailure: (Swift.Error) -> Void = { error in
+            assert(config.onError != nil)
+            config.onError?(error)
+        }
+        
         guard
             let onWrite = config.onWrite,
             let object = self.object.value,
             let newValue
-        else { return }
+        else {
+            assertionFailure()
+            return
+        }
         let result = onWrite(object, newValue)
-        guard let error = result.error else { return }
-        config.onError?(error)
-        assert(
-            config.onError != nil,
-            "An Error was thrown but ignored:\n\(String(describing: error))"
-        )
+        result.error.map(onFailure)
     }
 }
