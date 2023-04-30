@@ -36,7 +36,12 @@ public typealias OnError = (Error) -> Void
 public struct ErrorStorage: DynamicProperty {
     
     /// HACK because SwiftUI needs to let things settle before trying to present next error
+    #if os(watchOS)
+    /// TODO: Remove watch long delay. Needed because dismissing errors takes forever.
+    public static var HACK_errorDelay: DispatchTime { .now() + 1.0 }
+    #else
     public static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
+    #endif
     
     public struct Identifier: Identifiable, Codable, Hashable {
         public var id = UUID()
@@ -71,15 +76,15 @@ extension ErrorStorage {
             }
         }
         public func remove(_ key: Identifier) {
-            // HACK to prevent purple warnings
-            DispatchQueue.main.async
+            // HACK because SwiftUI needs to let things settle before trying to present next error
+            DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
             { [rawStorage] in
                 rawStorage.remove(key)
             }
         }
         public func removeAll() {
-            // HACK to prevent purple warnings
-            DispatchQueue.main.async
+            // HACK because SwiftUI needs to let things settle before trying to present next error
+            DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
             { [rawStorage] in
                 rawStorage.removeAll()
             }
