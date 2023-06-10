@@ -104,9 +104,14 @@ public struct ActionLocalization {
     /// Accessibility hint
     public var hint: LocalizedString?
     /// Keyboard shortcut
+    private var _shortcut: Any?
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public var shortcut: KeyboardShortcut?
+    public var shortcut: KeyboardShortcut? {
+        get { _shortcut as? KeyboardShortcut }
+        set { _shortcut = newValue }
+    }
+
     
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
