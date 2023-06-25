@@ -38,7 +38,9 @@ public enum Permission {
 
 extension Permission {
     public static var camera: Permission {
-        #if os(iOS)
+        #if os(xrOS)
+        return .incapable
+        #elseif os(iOS)
         if
             UIImagePickerController.isCameraDeviceAvailable(.rear) == false,
             UIImagePickerController.isCameraDeviceAvailable(.front) == false

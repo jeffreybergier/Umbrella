@@ -1,4 +1,4 @@
-// swift-tools-version:5.7.0
+// swift-tools-version:5.9.0
 //
 //  Created by Jeffrey Bergier on 2021/02/23.
 //
@@ -35,6 +35,7 @@ let package = Package(
         .macCatalyst(.init(stringLiteral: "15.4")),
         .tvOS(.init(stringLiteral: "15.4")),
         .iOS(.init(stringLiteral: "15.4")),
+        .visionOS(.v1),
     ],
     products: [
         .library(
