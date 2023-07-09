@@ -286,6 +286,11 @@ extension View {
     ///   - value: Equatable value to watch for changes
     ///   - async: use async to allow the view to appear before performing the initial work
     ///   - perform: closure to perform on load and change
+    @available(iOS,     deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(macOS,   deprecated: 14.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(tvOS,    deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(watchOS, deprecated: 10.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(xrOS,    deprecated: 1.0,  message: "Use `onChange` with a two or zero parameter action closure instead.")
     public func onLoadChange<T: Equatable>(of value: T,
                                            async: Bool = false,
                                            perform: @escaping (T) -> Void)
