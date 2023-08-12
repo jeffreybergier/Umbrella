@@ -273,6 +273,23 @@ extension View {
                                 actions: actions,
                                 message: message)
     }
+    
+    /// Removed redundent `isPresented` and `presenting` arguments
+    public func confirmationDialog<C: Collection & ExpressibleByArrayLiteral, A: View, M: View, S: StringProtocol>(
+        items: Binding<C>,
+        title: S,
+        titleVisibility: Visibility = .automatic,
+        @ViewBuilder actions: (C) -> A,
+        @ViewBuilder message: (C) -> M
+    ) -> some View
+    {
+        self.confirmationDialog(title,
+                                isPresented: items.mapBool(),
+                                titleVisibility: titleVisibility,
+                                presenting: items.wrappedValue,
+                                actions: actions,
+                                message: message)
+    }
 }
 
 // MARK: State Management Helpers
