@@ -56,4 +56,15 @@ extension Result {
         case .failure(let error): return .failure(error)
         }
     }
+    
+    public func `switch`(onFailure failure: ((Failure) -> Void)? = nil,
+                         onSuccess success: ((Success) -> Void)? = nil)
+    {
+        switch self {
+        case .success(let value):
+            success?(value)
+        case .failure(let error):
+            failure?(error)
+        }
+    }
 }
