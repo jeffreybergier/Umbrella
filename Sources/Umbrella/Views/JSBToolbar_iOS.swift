@@ -60,26 +60,23 @@ public struct JSBToolbar_iOS: ViewModifier {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     if let done {
-                        Button(done.title) {
-                            self.actionDone?()
-                        }
-                        .disabled(self.actionDone == nil)
+                        JSBToolbarButtonStyleDone
+                            .action(text: done)
+                            .button(item: self.actionDone, action: { $0() })
                     }
                 }
                 ToolbarItem(placement: .cancellationAction) {
                     if let cancel {
-                        Button(cancel.title) {
-                            self.actionCancel?()
-                        }
-                        .disabled(self.actionCancel == nil)
+                        JSBToolbarButtonStyleCancel
+                            .action(text: cancel)
+                            .button(item: self.actionCancel, action: { $0() })
                     }
                 }
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .destructiveAction) {
                     if let delete {
-                        Button(delete.title) {
-                            self.actionDelete?()
-                        }
-                        .disabled(self.actionDelete == nil)
+                        JSBToolbarButtonStyleDelete
+                            .action(text: delete)
+                            .button(item: self.actionDelete, action: { $0() })
                     }
                 }
             }
