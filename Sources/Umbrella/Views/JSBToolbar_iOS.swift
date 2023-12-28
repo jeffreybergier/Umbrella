@@ -72,7 +72,8 @@ public struct JSBToolbar_iOS: ViewModifier {
                             .button(item: self.actionCancel, action: { $0() })
                     }
                 }
-                ToolbarItem(placement: .destructiveAction) {
+                // TODO: Figure out why destructiveAction is placed next to confirmation action
+                ToolbarItem(placement: .cancellationAction) {
                     if let delete {
                         JSBToolbarButtonStyleDelete
                             .action(text: delete)
