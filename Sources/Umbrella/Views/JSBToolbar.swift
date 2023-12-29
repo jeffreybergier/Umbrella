@@ -32,6 +32,7 @@ public struct JSBToolbar: ViewModifier {
     private var done:   ActionLocalization?
     private var cancel: ActionLocalization?
     private var delete: ActionLocalization?
+    private var macOSLegacyBehavior: Bool
     
     public var actionDone:   (() -> Void)?
     public var actionCancel: (() -> Void)?
@@ -43,7 +44,8 @@ public struct JSBToolbar: ViewModifier {
                 delete: ActionLocalization? = nil,
                 doneAction:   (() -> Void)? = nil,
                 cancelAction: (() -> Void)? = nil,
-                deleteAction: (() -> Void)? = nil)
+                deleteAction: (() -> Void)? = nil,
+                macOSLegacyBehavior: Bool = true)
     {
         self.title = title
         self.done = done
@@ -52,26 +54,37 @@ public struct JSBToolbar: ViewModifier {
         self.actionDone = doneAction
         self.actionCancel = cancelAction
         self.actionDelete = deleteAction
+        self.macOSLegacyBehavior = macOSLegacyBehavior
     }
     
     public func body(content: Content) -> some View {
-        #if os(macOS)
-        content.modifier(JSBToolbar_macOS(title: self.title,
-                                          done: self.done,
-                                          cancel: self.cancel,
-                                          delete: self.delete,
-                                          doneAction: self.actionDone,
-                                          cancelAction: self.actionCancel,
-                                          deleteAction: self.actionDelete))
-        #else
-        content.modifier(JSBToolbar_iOS(title: self.title,
-                                        done: self.done,
-                                        cancel: self.cancel,
-                                        delete: self.delete,
-                                        doneAction: self.actionDone,
-                                        cancelAction: self.actionCancel,
-                                        deleteAction: self.actionDelete))
-        #endif
+        if self.macOSLegacyBehavior == false {
+            content.modifier(JSBToolbar_iOS(title: self.title,
+                                            done: self.done,
+                                            cancel: self.cancel,
+                                            delete: self.delete,
+                                            doneAction: self.actionDone,
+                                            cancelAction: self.actionCancel,
+                                            deleteAction: self.actionDelete))
+        } else {
+            #if os(macOS)
+            content.modifier(JSBToolbar_macOS(title: self.title,
+                                              done: self.done,
+                                              cancel: self.cancel,
+                                              delete: self.delete,
+                                              doneAction: self.actionDone,
+                                              cancelAction: self.actionCancel,
+                                              deleteAction: self.actionDelete))
+            #else
+            content.modifier(JSBToolbar_iOS(title: self.title,
+                                            done: self.done,
+                                            cancel: self.cancel,
+                                            delete: self.delete,
+                                            doneAction: self.actionDone,
+                                            cancelAction: self.actionCancel,
+                                            deleteAction: self.actionDelete))
+            #endif
+        }
     }
 }
 
