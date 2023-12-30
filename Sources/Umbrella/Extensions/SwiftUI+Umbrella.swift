@@ -34,6 +34,11 @@ import AppKit
 // MARK: Crossplatform support
 
 extension View {
+    @available(iOS,     deprecated: 17.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(macOS,   deprecated: 14.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(tvOS,    deprecated: 17.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(watchOS, deprecated: 10.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(xrOS,    deprecated: 1.0,  message: "Use `toolbarTitleDisplayMode()` instead")
     public var navigationBarTitleDisplayModeInline: some View {
         #if os(macOS) || os(tvOS)
         self
