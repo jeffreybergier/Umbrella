@@ -26,11 +26,14 @@
 #if os(iOS)
 import UIKit
 import Photos
+#elseif os(macOS)
+import Photos
 #endif
 import AVFoundation
 
 public enum Permission {
     case allowed
+    case capable
     case restricted
     case denied
     case incapable
@@ -47,6 +50,9 @@ extension Permission {
         {
             return .incapable
         }
+        if IS_RUNNING_AS_EXTENSION {
+            return .incapable
+        }
         switch AVCaptureDevice.authorizationStatus(for: AVMediaType.video) {
         case .restricted:
             return .restricted
@@ -55,7 +61,7 @@ extension Permission {
         case .authorized:
             return .allowed
         case .notDetermined:
-            fallthrough
+            return .capable
         @unknown default:
             return .allowed
         }
@@ -73,8 +79,9 @@ extension Permission {
         #endif
     }
     /// Explicit Permission
+    // TODO: Update for macOS and other platforms
     public static var libraryReadWrite: Permission {
-        #if os(iOS)
+        #if os(iOS) || os(macOS)
         switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
         case .restricted:
             return .restricted
@@ -83,7 +90,7 @@ extension Permission {
         case .authorized:
             return .allowed
         case .notDetermined:
-            fallthrough
+            return .capable
         case .limited:
             fallthrough
         @unknown default:
@@ -93,4 +100,8 @@ extension Permission {
         return .incapable
         #endif
     }
+}
+
+fileprivate var IS_RUNNING_AS_EXTENSION: Bool {
+    Bundle.main.bundlePath.hasSuffix(".appex")
 }
