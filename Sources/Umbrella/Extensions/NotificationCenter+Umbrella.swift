@@ -35,9 +35,11 @@ extension NotificationCenter {
         return .init(name, object: object, center: self)
     }
     
-    public class Observable: ObservableObject {
+    open class Observable: ObservableObject {
         
+        /// Random number that changes when the notification fires
         @Published public private(set) var randomNumber = -1
+        /// Last notification fired
         @Published public private(set) var lastNotification: Notification?
         
         public let notificationName: Notification.Name
