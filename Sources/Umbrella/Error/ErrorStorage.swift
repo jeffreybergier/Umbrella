@@ -56,19 +56,31 @@ public struct ErrorStorage: DynamicProperty {
     
     /// Use to detect in your UI if there are Errors to show and what the next error is.
     public var wrappedValue: Value {
-        return .init(all: self.storage.identifiers,
-                     rawStorage: self.storage)
+        return .init(self.storage)
     }
 }
 
 extension ErrorStorage {
     
     public struct Value {
-        public let all: [Identifier]
-        public let rawStorage: EnvironmentValue
+        
+        public let didAppend: PassthroughSubject<Identifier, Never>
+        public let didChange: PassthroughSubject<Identifier?, Never>
+        public let nextError: Identifier?
+        
+        private let rawStorage: EnvironmentValue
+        
+        internal init(_ rawStorage: EnvironmentValue) {
+            self.rawStorage = rawStorage
+            self.didAppend = rawStorage.didAppend
+            self.didChange = rawStorage.didChange
+            self.nextError = rawStorage.identifiers.first
+        }
+        
         public func error(for key: Identifier) -> Error? {
             self.rawStorage.error(for: key)
         }
+        
         public func append(_ error: Error) {
             // HACK because SwiftUI needs to let things settle before trying to present next error
             DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
@@ -76,6 +88,7 @@ extension ErrorStorage {
                 rawStorage.append(error)
             }
         }
+        
         public func remove(_ key: Identifier) {
             // HACK because SwiftUI needs to let things settle before trying to present next error
             DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
@@ -83,6 +96,7 @@ extension ErrorStorage {
                 rawStorage.remove(key)
             }
         }
+        
         public func removeAll() {
             // HACK because SwiftUI needs to let things settle before trying to present next error
             DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
@@ -95,8 +109,10 @@ extension ErrorStorage {
     public class EnvironmentValue: ObservableObject {
         
         @Published public internal(set) var identifiers: [Identifier] = []
-        public internal(set) var storage: [Identifier: Error] = [:]
-        public let onAppend = PassthroughSubject<Identifier, Never>()
+        public let didAppend = PassthroughSubject<Identifier, Never>()
+        public let didChange = PassthroughSubject<Identifier?, Never>()
+        
+        internal var storage: [Identifier: Error] = [:]
         
         public init() {}
         
@@ -108,17 +124,20 @@ extension ErrorStorage {
             let id = Identifier()
             self.storage[id] = error
             self.identifiers.append(id)
-            self.onAppend.send(id)
+            self.didAppend.send(id)
+            self.didChange.send(id)
         }
         
         public func remove(_ key: Identifier) {
             self.storage.removeValue(forKey: key)
             self.identifiers.removeAll { key == $0 }
+            self.didChange.send(self.identifiers.first)
         }
         
         public func removeAll() {
             self.storage = [:]
             self.identifiers = []
+            self.didChange.send(self.identifiers.first)
         }
     }
 }

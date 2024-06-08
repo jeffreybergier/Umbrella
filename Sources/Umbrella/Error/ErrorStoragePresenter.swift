@@ -79,15 +79,20 @@ extension ErrorStorage {
         
         internal func body(content: Content) -> some View {
             content
-                .onLoadChange(of: self.storage.all,
-                              perform: self.update(_:))
-                .onLoadChange(of: self.isAlreadyPresenting,
-                              perform: self.update(_:))
+                .onReceive(self.storage.didChange, perform: self.update(_:))
+                .onChange(of: self.isAlreadyPresenting) { isAlreadyPresenting in
+                    guard isAlreadyPresenting == false else { return }
+                    self.update(self.storage.nextError)
+                }
+                .onAppear() {
+                    guard let next = self.storage.nextError else { return }
+                    self.update(next)
+                }
         }
         
-        private func update(_: Any) {
+        private func update(_ identifier: ErrorStorage.Identifier?) {
             guard self.isAlreadyPresenting == false else { return }
-            self.toPresent = self.storage.all.first
+            self.toPresent = identifier
         }
     }
     
