@@ -104,13 +104,13 @@ extension ErrorStorage {
         
         public func append(_ error: Error) {
             let id = Identifier()
-            self.identifiers.append(id)
             self.storage[id] = error
+            self.identifiers.append(id)
         }
         
         public func remove(_ key: Identifier) {
-            self.identifiers.removeAll { key == $0 }
             self.storage.removeValue(forKey: key)
+            self.identifiers.removeAll { key == $0 }
         }
         
         public func removeAll() {
