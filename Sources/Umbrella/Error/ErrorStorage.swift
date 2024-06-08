@@ -25,6 +25,7 @@
 //
 
 import Foundation
+import Combine
 import SwiftUI
 
 public typealias OnError = (Error) -> Void
@@ -93,8 +94,9 @@ extension ErrorStorage {
     
     public class EnvironmentValue: ObservableObject {
         
-        @Published public internal(set) var storage: [Identifier: Error] = [:]
         @Published public internal(set) var identifiers: [Identifier] = []
+        public internal(set) var storage: [Identifier: Error] = [:]
+        public let onAppend = PassthroughSubject<Identifier, Never>()
         
         public init() {}
         
@@ -106,6 +108,7 @@ extension ErrorStorage {
             let id = Identifier()
             self.storage[id] = error
             self.identifiers.append(id)
+            self.onAppend.send(id)
         }
         
         public func remove(_ key: Identifier) {
