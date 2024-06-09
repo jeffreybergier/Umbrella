@@ -30,7 +30,12 @@ extension ErrorStorage {
     public struct Presenter: ViewModifier {
         
         /// HACK because SwiftUI needs to let things settle before trying to present next error
+        #if os(watchOS)
+        /// TODO: Remove watch long delay. Needed because dismissing errors takes forever.
+        public static var HACK_errorDelay: DispatchTime { .now() + 0.4 }
+        #else
         public static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
+        #endif
         
         private let router: (Error) -> any UserFacingError
         private let onDismiss: (Error) -> Void
