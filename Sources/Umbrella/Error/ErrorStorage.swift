@@ -36,14 +36,6 @@ public typealias OnError = (Error) -> Void
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
-    /// HACK because SwiftUI needs to let things settle before trying to present next error
-    #if os(watchOS)
-    /// TODO: Remove watch long delay. Needed because dismissing errors takes forever.
-    public static var HACK_errorDelay: DispatchTime { .now() + 1.0 }
-    #else
-    public static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
-    #endif
-    
     public struct Identifier: Identifiable, Codable, Hashable {
         public var id = UUID()
     }
@@ -82,33 +74,21 @@ extension ErrorStorage {
         }
         
         public func append(_ error: Error) {
-            // HACK because SwiftUI needs to let things settle before trying to present next error
-            DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
-            { [rawStorage] in
-                rawStorage.append(error)
-            }
+            self.rawStorage.append(error)
         }
         
         public func remove(_ key: Identifier) {
-            // HACK because SwiftUI needs to let things settle before trying to present next error
-            DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
-            { [rawStorage] in
-                rawStorage.remove(key)
-            }
+            self.rawStorage.remove(key)
         }
         
         public func removeAll() {
-            // HACK because SwiftUI needs to let things settle before trying to present next error
-            DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
-            { [rawStorage] in
-                rawStorage.removeAll()
-            }
+            self.rawStorage.removeAll()
         }
     }
     
     public class EnvironmentValue: ObservableObject {
         
-        @Published public internal(set) var identifiers: [Identifier] = []
+        public internal(set) var identifiers: [Identifier] = []
         public let didAppendPub = PassthroughSubject<Identifier, Never>()
         public let nextErrorPub = PassthroughSubject<Identifier?, Never>()
         
@@ -121,24 +101,39 @@ extension ErrorStorage {
         }
         
         public func append(_ error: Error) {
+            // Send pre notifications
+            self.objectWillChange.send()
+            
             // Update Storage
             let id = Identifier()
             self.storage[id] = error
             self.identifiers.append(id)
-            // Send notifications
+            // Send post notifications
             self.didAppendPub.send(id)
             self.nextErrorPub.send(self.identifiers.first)
         }
         
         public func remove(_ key: Identifier) {
+            // Send pre notifications
+            self.objectWillChange.send()
+            
+            // Update Storage
             self.storage.removeValue(forKey: key)
             self.identifiers.removeAll { key == $0 }
+            
+            // Send post notifications
             self.nextErrorPub.send(self.identifiers.first)
         }
         
         public func removeAll() {
+            // Send pre notifications
+            self.objectWillChange.send()
+            
+            // Update Storage
             self.storage = [:]
             self.identifiers = []
+            
+            // Send post notifications
             self.nextErrorPub.send(self.identifiers.first)
         }
     }

@@ -29,6 +29,9 @@ import SwiftUI
 extension ErrorStorage {
     public struct Presenter: ViewModifier {
         
+        /// HACK because SwiftUI needs to let things settle before trying to present next error
+        fileprivate static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
+        
         private let router: (Error) -> any UserFacingError
         private let onDismiss: (Error) -> Void
         
@@ -79,20 +82,22 @@ extension ErrorStorage {
         
         internal func body(content: Content) -> some View {
             content
-                .onReceive(self.storage.nextErrorPub, perform: self.update(_:))
-                .onChange(of: self.isAlreadyPresenting) { isAlreadyPresenting in
-                    guard isAlreadyPresenting == false else { return }
-                    self.update(self.storage.nextError)
+                .onReceive(self.storage.nextErrorPub) { next in
+                    next.map { self.update($0) }
+                }
+                .onChange(of: self.isAlreadyPresenting) { _ in
+                    self.storage.nextError.map { self.update($0) }
                 }
                 .onAppear() {
-                    guard let next = self.storage.nextError else { return }
-                    self.update(next)
+                    self.storage.nextError.map { self.update($0) }
                 }
         }
         
-        private func update(_ identifier: ErrorStorage.Identifier?) {
-            guard self.isAlreadyPresenting == false else { return }
-            self.toPresent = identifier
+        private func update(_ identifier: ErrorStorage.Identifier) {
+            DispatchQueue.main.asyncAfter(deadline: Presenter.HACK_errorDelay) {
+                guard self.isAlreadyPresenting == false else { return }
+                self.toPresent = identifier
+            }
         }
     }
     
@@ -105,12 +110,12 @@ extension ErrorStorage {
         @ErrorStorage private var storage
         @Environment(\.bundle) private var bundle
         
-        internal init(toPresent:   Binding<ErrorStorage.Identifier?>,
+        internal init(toPresent: Binding<ErrorStorage.Identifier?>,
                       router:    @escaping (Error) -> any UserFacingError,
                       onDismiss: @escaping (Error) -> Void = { _ in })
         {
-            _toPresent = toPresent
-            self.router = router
+            _toPresent     = toPresent
+            self.router    = router
             self.onDismiss = onDismiss
         }
         
@@ -118,21 +123,21 @@ extension ErrorStorage {
             content
                 .alert(error: self.isUserFacingError,
                        bundle: self.bundle)
-            {
-                self.toPresent.map { self.storage.remove($0) }
-                self.onDismiss($0)
+            { error in
+                let presented = self.toPresent
+                let storage = self.storage
+                DispatchQueue.main.asyncAfter(deadline: Presenter.HACK_errorDelay) {
+                    presented.map { storage.remove($0) }
+                }
+                self.toPresent = nil
+                self.onDismiss(error)
             }
         }
         
         private var isUserFacingError: Binding<UserFacingError?> {
             Binding {
                 guard let identifier = self.toPresent else { return nil }
-                guard let error = self.storage.error(for: identifier) else {
-                    self.storage.remove(identifier)
-                    self.toPresent = nil
-                    return nil
-                }
-                return self.router(error)
+                return self.storage.error(for: identifier).map { self.router($0) }
             } set: {
                 guard $0 == nil else { return }
                 self.toPresent = nil
