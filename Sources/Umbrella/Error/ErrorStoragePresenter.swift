@@ -30,7 +30,7 @@ extension ErrorStorage {
     public struct Presenter: ViewModifier {
         
         /// HACK because SwiftUI needs to let things settle before trying to present next error
-        fileprivate static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
+        public static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
         
         private let router: (Error) -> any UserFacingError
         private let onDismiss: (Error) -> Void
