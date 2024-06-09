@@ -88,11 +88,10 @@ extension ErrorStorage {
     
     public class EnvironmentValue: ObservableObject {
         
-        public internal(set) var identifiers: [Identifier] = []
         public let didAppendPub = PassthroughSubject<Identifier, Never>()
         public let nextErrorPub = PassthroughSubject<Identifier?, Never>()
-        
-        internal var storage: [Identifier: Error] = [:]
+        public private(set) var identifiers: [Identifier] = []
+        private var storage: [Identifier: Error] = [:]
         
         public init() {}
         
@@ -108,6 +107,7 @@ extension ErrorStorage {
             let id = Identifier()
             self.storage[id] = error
             self.identifiers.append(id)
+            
             // Send post notifications
             self.didAppendPub.send(id)
             self.nextErrorPub.send(self.identifiers.first)

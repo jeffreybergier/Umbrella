@@ -82,20 +82,24 @@ extension ErrorStorage {
         
         internal func body(content: Content) -> some View {
             content
-                .onReceive(self.storage.nextErrorPub) { next in
-                    next.map { self.update($0) }
+                .onReceive(self.storage.nextErrorPub) { _ in
+                    self.update()
                 }
                 .onChange(of: self.isAlreadyPresenting) { _ in
-                    self.storage.nextError.map { self.update($0) }
+                    self.update()
                 }
                 .onAppear() {
-                    self.storage.nextError.map { self.update($0) }
+                    self.update()
                 }
         }
         
-        private func update(_ identifier: ErrorStorage.Identifier) {
+        private func update() {
+            guard self.isAlreadyPresenting == false else { return }
             DispatchQueue.main.asyncAfter(deadline: Presenter.HACK_errorDelay) {
-                guard self.isAlreadyPresenting == false else { return }
+                guard
+                    let identifier = self.storage.nextError,
+                    self.isAlreadyPresenting == false
+                else { return }
                 self.toPresent = identifier
             }
         }
