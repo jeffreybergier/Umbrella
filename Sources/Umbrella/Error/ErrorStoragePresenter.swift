@@ -79,7 +79,7 @@ extension ErrorStorage {
         
         internal func body(content: Content) -> some View {
             content
-                .onReceive(self.storage.didChange, perform: self.update(_:))
+                .onReceive(self.storage.nextErrorPub, perform: self.update(_:))
                 .onChange(of: self.isAlreadyPresenting) { isAlreadyPresenting in
                     guard isAlreadyPresenting == false else { return }
                     self.update(self.storage.nextError)

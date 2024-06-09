@@ -64,16 +64,16 @@ extension ErrorStorage {
     
     public struct Value {
         
-        public let didAppend: PassthroughSubject<Identifier, Never>
-        public let didChange: PassthroughSubject<Identifier?, Never>
+        public let didAppendPub: PassthroughSubject<Identifier, Never>
+        public let nextErrorPub: PassthroughSubject<Identifier?, Never>
         public let nextError: Identifier?
         
         private let rawStorage: EnvironmentValue
         
         internal init(_ rawStorage: EnvironmentValue) {
             self.rawStorage = rawStorage
-            self.didAppend = rawStorage.didAppend
-            self.didChange = rawStorage.didChange
+            self.didAppendPub = rawStorage.didAppendPub
+            self.nextErrorPub = rawStorage.nextErrorPub
             self.nextError = rawStorage.identifiers.first
         }
         
@@ -109,8 +109,8 @@ extension ErrorStorage {
     public class EnvironmentValue: ObservableObject {
         
         @Published public internal(set) var identifiers: [Identifier] = []
-        public let didAppend = PassthroughSubject<Identifier, Never>()
-        public let didChange = PassthroughSubject<Identifier?, Never>()
+        public let didAppendPub = PassthroughSubject<Identifier, Never>()
+        public let nextErrorPub = PassthroughSubject<Identifier?, Never>()
         
         internal var storage: [Identifier: Error] = [:]
         
@@ -121,23 +121,25 @@ extension ErrorStorage {
         }
         
         public func append(_ error: Error) {
+            // Update Storage
             let id = Identifier()
             self.storage[id] = error
             self.identifiers.append(id)
-            self.didAppend.send(id)
-            self.didChange.send(id)
+            // Send notifications
+            self.didAppendPub.send(id)
+            self.nextErrorPub.send(self.identifiers.first)
         }
         
         public func remove(_ key: Identifier) {
             self.storage.removeValue(forKey: key)
             self.identifiers.removeAll { key == $0 }
-            self.didChange.send(self.identifiers.first)
+            self.nextErrorPub.send(self.identifiers.first)
         }
         
         public func removeAll() {
             self.storage = [:]
             self.identifiers = []
-            self.didChange.send(self.identifiers.first)
+            self.nextErrorPub.send(self.identifiers.first)
         }
     }
 }
