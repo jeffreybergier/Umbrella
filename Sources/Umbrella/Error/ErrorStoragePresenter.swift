@@ -83,27 +83,22 @@ extension ErrorStorage {
         internal func body(content: Content) -> some View {
             content
                 .onReceive(self.storage.nextErrorPub) { _ in
-                    guard self.isAlreadyPresenting == false else { return }
                     self.update()
                 }
                 .onChange(of: self.isAlreadyPresenting) { _ in
-                    guard self.isAlreadyPresenting == false else { return }
                     self.update()
                 }
                 .onAppear() {
-                    guard self.isAlreadyPresenting == false else { return }
                     self.update()
                 }
         }
         
         private func update() {
-            print("NEXT")
-            print("OUTER; self.isAlreadyPresenting: \(self.isAlreadyPresenting)")
-            DispatchQueue.main.asyncAfter(deadline: Presenter.HACK_errorDelay)
-            { [weak storage = _storage.storage] in
-                print("INNER; self.isAlreadyPresenting: \(self.isAlreadyPresenting)")
-                guard self.isAlreadyPresenting == false else { return }
-                guard let identifier = storage?.identifiers.first else { return }
+            DispatchQueue.main.asyncAfter(deadline: Presenter.HACK_errorDelay) {
+                guard
+                    let identifier = self.storage.nextError,
+                    self.isAlreadyPresenting == false
+                else { return }
                 self.toPresent = identifier
             }
         }

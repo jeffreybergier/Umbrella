@@ -42,7 +42,7 @@ public struct ErrorStorage: DynamicProperty {
     
     public static func newEnvironment() -> EnvironmentValue { .init() }
     
-    @EnvironmentObject internal var storage: EnvironmentValue
+    @EnvironmentObject private var storage: EnvironmentValue
     
     public init() {}
     
