@@ -55,7 +55,11 @@ let package = Package(
         .target(
             name: "Umbrella",
             dependencies: [],
-            path: "Sources/Umbrella"
+            path: "Sources/Umbrella",
+            swiftSettings: [
+              .enableExperimentalFeature("StrictConcurrency"),
+              .enableUpcomingFeature("StrictConcurrency")
+            ]
         ),
         .target(
             name: "TestUmbrella",
@@ -74,5 +78,6 @@ let package = Package(
                 .copy("Resources/BundleTest.png"),
             ]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.version("5")]
 )
