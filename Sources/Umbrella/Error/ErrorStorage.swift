@@ -36,7 +36,7 @@ public typealias OnError = (Error) -> Void
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
-    public struct Identifier: Identifiable, Codable, Hashable {
+    public struct Identifier: Identifiable, Codable, Hashable, Sendable {
         public var id = UUID()
     }
     
