@@ -34,6 +34,7 @@ import SwiftUI
 /// On either instance, call `actionWith:` method to create `Action`.
 /// Use `some ActionStyle` to hide implementation details from your UI code.
 /// Can be constructed manually with `ActionImp` or by implementing custom type.
+@MainActor
 public protocol Action {
     associatedtype Style: ActionStyle
     
@@ -57,6 +58,7 @@ public struct ActionImp<S: ActionStyle>: Action {
 /// Make the creation of buttons and labels that are accessible and have keyboard shortcuts easy.
 /// Customize by using `outerModifier`. Make sophisitcated labels using `innerModifier`.
 /// Use `some ActionStyle` with `ActionStyleImp` to hide implementation details.
+@MainActor
 public protocol ActionStyle {
     associatedtype LS: LabelStyle
     associatedtype M1: ViewModifier
@@ -96,7 +98,7 @@ public struct ActionStyleImp<LS: LabelStyle, M1: ViewModifier, M2: ViewModifier>
 // MARK: Action Localization
 
 /// Configure the text of the Button or Label
-public struct ActionLocalization {
+public struct ActionLocalization: Sendable {
     /// Image for the label
     public var image: ActionLabelImage?
     /// Visible label and accessibility label
@@ -104,7 +106,7 @@ public struct ActionLocalization {
     /// Accessibility hint
     public var hint: LocalizedString?
     /// Keyboard shortcut
-    private var _shortcut: Any?
+    private var _shortcut: Sendable?
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     public var shortcut: KeyboardShortcut? {
@@ -138,12 +140,13 @@ public struct ActionLocalization {
         self.hint = hint
     }
     
+    @MainActor
     public func action<S: ActionStyle>(style: S) -> some Action {
         return ActionImp(style: style, localization: self)
     }
 }
 
-public enum ActionLabelImage: Equatable {
+public enum ActionLabelImage: Equatable, Sendable {
     case system(String)
     case view(Image)
     case image(JSBImage)
