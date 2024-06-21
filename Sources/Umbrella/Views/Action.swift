@@ -252,28 +252,34 @@ extension Action {
     }
 }
 
+@MainActor
 public struct ActionEnableBool {
+    public typealias Closure = @MainActor () -> Void
     public var isEnabled: Bool
-    public var action: () -> Void
-    public init(_ isEnabled: Bool = true, action: @escaping () -> Void) {
+    public var action: Closure
+    public init(_ isEnabled: Bool = true, action: @escaping Closure) {
         self.isEnabled = isEnabled
         self.action = action
     }
 }
 
+@MainActor
 public struct ActionEnableItem<T> {
+    public typealias Closure = @MainActor (T) -> Void
     public var item: T?
-    public var action: (T) -> Void
-    public init(_ item: T?, action: @escaping (T) -> Void) {
+    public var action: Closure
+    public init(_ item: T?, action: @escaping Closure) {
         self.item = item
         self.action = action
     }
 }
 
+@MainActor
 public struct ActionEnableItems<C: Collection> {
+    public typealias Closure = @MainActor (C) -> Void
     public var items: C
-    public var action: (C) -> Void
-    public init(_ items: C, action: @escaping (C) -> Void) {
+    public var action: Closure
+    public init(_ items: C, action: @escaping Closure) {
         self.items = items
         self.action = action
     }
