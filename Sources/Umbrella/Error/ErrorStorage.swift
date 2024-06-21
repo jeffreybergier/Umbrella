@@ -33,6 +33,7 @@ public typealias OnError = (Error) -> Void
 /// Use to store Errors across your application. Works in combination with `ErrorStorage.Presenter`
 /// to display errors in your application. This type makes no attempt to encode errors, they are all lost when
 /// the application quits. However, `ErrorStorage.Identifier` can be coded.
+@MainActor
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     

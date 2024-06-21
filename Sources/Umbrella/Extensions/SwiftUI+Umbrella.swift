@@ -84,7 +84,8 @@ extension View {
     }
 }
 
-public struct EnvironmentTintColor: EnvironmentKey {
+@MainActor // TODO: Update this to safe when SwiftUI allows
+public struct EnvironmentTintColor: @preconcurrency EnvironmentKey {
     public static var defaultValue: Color = {
         #if os(macOS)
         Color(nsColor: NSColor.controlAccentColor)

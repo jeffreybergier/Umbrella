@@ -27,6 +27,7 @@
 import SwiftUI
 
 /// Provides a AppStorage API that takes any codable value
+@MainActor
 @propertyWrapper
 public struct JSBAppStorage<Value: Codable>: DynamicProperty {
     

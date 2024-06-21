@@ -27,6 +27,7 @@
 import SwiftUI
 
 /// Provides a SceneStorage API that takes any codable value
+@MainActor
 @propertyWrapper
 public struct JSBSceneStorage<Value: Codable>: DynamicProperty {
     
