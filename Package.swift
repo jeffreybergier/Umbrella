@@ -1,4 +1,4 @@
-// swift-tools-version:5.9.0
+// swift-tools-version:6.0.0
 //
 //  Created by Jeffrey Bergier on 2021/02/23.
 //
@@ -55,11 +55,7 @@ let package = Package(
         .target(
             name: "Umbrella",
             dependencies: [],
-            path: "Sources/Umbrella",
-            swiftSettings: [
-              .enableExperimentalFeature("StrictConcurrency"),
-              .enableUpcomingFeature("StrictConcurrency")
-            ]
+            path: "Sources/Umbrella"
         ),
         .target(
             name: "TestUmbrella",
@@ -79,5 +75,5 @@ let package = Package(
             ]
         ),
     ],
-    swiftLanguageVersions: [.version("5")]
+    swiftLanguageVersions: [.version("6")]
 )
