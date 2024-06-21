@@ -27,7 +27,15 @@
 import SwiftUI
 
 extension Binding {
-    public func map<T>(get: @escaping (Value) -> T, set: @escaping (T) -> Value) -> Binding<T> {
+    @available(*, deprecated, message:"Use `Binding.map` with Sendable types")
+    @MainActor public func fallback_map<T>(get: @escaping (Value) -> T, set: @escaping (T) -> Value) -> Binding<T> {
+        .init {
+            get(self.wrappedValue)
+        } set: {
+            self.wrappedValue = set($0)
+        }
+    }
+    public func map<T>(get: @Sendable @escaping (Value) -> T, set: @Sendable @escaping (T) -> Value) -> Binding<T> {
         .init {
             get(self.wrappedValue)
         } set: {
@@ -37,7 +45,11 @@ extension Binding {
 }
 
 extension Binding {
-    public func compactMap<T>(`default`: T) -> Binding<T> where Value == Optional<T> {
+    @available(*, deprecated, message:"Use `Binding.compactMap` with Sendable types")
+    public func unsafe_compactMap<T>(`default`: T) -> Binding<T> where Value == Optional<T> {
+        self.map(get: { $0 ?? `default` }, set: { $0 })
+    }
+    public func compactMap<T: Sendable>(`default`: T) -> Binding<T> where Value == Optional<T> {
         self.map(get: { $0 ?? `default` }, set: { $0 })
     }
 }
