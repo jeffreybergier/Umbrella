@@ -45,10 +45,6 @@ extension Binding {
 }
 
 extension Binding {
-    @available(*, deprecated, message:"Use `Binding.compactMap` with Sendable types")
-    public func unsafe_compactMap<T>(`default`: T) -> Binding<T> where Value == Optional<T> {
-        self.map(get: { $0 ?? `default` }, set: { $0 })
-    }
     public func compactMap<T: Sendable>(`default`: T) -> Binding<T> where Value == Optional<T> {
         self.map(get: { $0 ?? `default` }, set: { $0 })
     }
