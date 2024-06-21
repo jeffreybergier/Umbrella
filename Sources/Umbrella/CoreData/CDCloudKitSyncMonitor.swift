@@ -33,6 +33,7 @@ import CloudKit
 
 /// Shows continuous progress of CloudKit syncing via NSPersistentCloudKitContainer.
 /// Note, this class is not tested because it relies on NSNotificationCenter and other singletons.
+@MainActor
 @available(iOS 14.0, OSX 11.0, *)
 public class CDCloudKitSyncMonitor: ObservableObject {
     
@@ -50,55 +51,66 @@ public class CDCloudKitSyncMonitor: ObservableObject {
         }
         let nc = NotificationCenter.default
         nc.addObserver(self,
-                       selector: #selector(self.observeSync(_:)),
+                       selector: #selector(self.NC_observeSyncEvent(_:)),
                        name: self.syncName,
                        object: container)
         nc.addObserver(self,
-                       selector: #selector(self.observeAccount),
+                       selector: #selector(self.NC_observeAccount),
                        name: self.accountName,
                        object: nil)
-        self.observeAccount()
-    }
-    
-    @objc private func observeAccount() {
-        guard ISTESTING == false else { return }
-        CKContainer.default().accountStatus() { account, error in
-            DispatchQueue.main.async {
-                self.objectWillChange.send()
-                if let error = error {
-                    NSLog(String(describing: error))
-                    self.progressBox.value.errors.append(error)
-                    return
-                }
-                switch account {
-                case .available:
-                    return
-                case .couldNotDetermine, .restricted, .noAccount, .temporarilyUnavailable:
-                    fallthrough
-                @unknown default:
-                    self.progressBox.value.errors.append(CPAccountStatus(account))
-                }
-            }
+        Task {
+            await self.observeAccount()
         }
     }
     
-    @objc private func observeSync(_ aNotification: Notification) {
-        let key = NSPersistentCloudKitContainer.eventNotificationUserInfoKey
-        guard let event = aNotification.userInfo?[key]
-                as? NSPersistentCloudKitContainer.Event else { return }
-        DispatchQueue.main.async {
+    @objc nonisolated private func NC_observeAccount() {
+        Task {
+            await self.observeAccount()
+        }
+    }
+    
+    private func observeAccount() async {
+        guard ISTESTING == false else { return }
+        do {
+            let account = try await CKContainer.default().accountStatus()
+            switch account {
+            case .available:
+                return
+            case .couldNotDetermine, .restricted, .noAccount, .temporarilyUnavailable:
+                fallthrough
+            @unknown default:
+                self.objectWillChange.send()
+                self.progressBox.value.errors.append(CPAccountStatus(account))
+            }
+        } catch {
+            NSLog(String(describing: error))
             self.objectWillChange.send()
-            if let error = event.error {
-                NSLog(String(describing: error))
-                self.progressBox.value.errors.append(error)
-            }
-            if self.io.contains(event.identifier) {
-                self.io.remove(event.identifier)
-                self.progressBox.value.progress.completedUnitCount += 1
-            } else {
-                self.io.insert(event.identifier)
-                self.progressBox.value.progress.totalUnitCount += 1
-            }
+            self.progressBox.value.errors.append(error)
+        }
+    }
+    
+    @objc nonisolated private func NC_observeSyncEvent(_ aNotification: Notification) {
+        let key = NSPersistentCloudKitContainer.eventNotificationUserInfoKey
+        guard let event = aNotification.userInfo?[key] as? NSPersistentCloudKitContainer.Event else { return }
+        let identifier = event.identifier
+        let error = event.error
+        Task {
+            await self.observeSyncEvent(identifier: identifier, error: error)
+        }
+    }
+    
+    private func observeSyncEvent(identifier: UUID, error: Error?) {
+        self.objectWillChange.send()
+        if let error = error {
+            NSLog(String(describing: error))
+            self.progressBox.value.errors.append(error)
+        }
+        if self.io.contains(identifier) {
+            self.io.remove(identifier)
+            self.progressBox.value.progress.completedUnitCount += 1
+        } else {
+            self.io.insert(identifier)
+            self.progressBox.value.progress.totalUnitCount += 1
         }
     }
     
