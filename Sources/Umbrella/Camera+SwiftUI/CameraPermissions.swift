@@ -41,7 +41,7 @@ public enum Permission {
 
 extension Permission {
     public static var camera: Permission {
-        #if os(xrOS)
+        #if os(visionOS)
         return .incapable
         #elseif os(iOS)
         if
