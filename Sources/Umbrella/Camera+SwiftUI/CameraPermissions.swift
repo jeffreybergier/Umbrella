@@ -31,7 +31,7 @@ import Photos
 #endif
 import AVFoundation
 
-public enum Permission {
+public enum Permission: Sendable {
     case allowed
     case capable
     case restricted
@@ -40,6 +40,7 @@ public enum Permission {
 }
 
 extension Permission {
+    @MainActor
     public static var camera: Permission {
         #if os(visionOS)
         return .incapable
