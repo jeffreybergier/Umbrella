@@ -239,11 +239,24 @@ extension Action {
         return self.button(isEnabled)
     }
     
+    // TODO: Hack because the Swift 6 compiler has trouble with this
+    // type signature when used in other projects when compiled in release mode.
+    // Delete when no longer needed and use ORIGINAL_raw_button
+    #if DEBUG
     private func raw_button(action: @escaping () -> Void) -> some View {
+        self.ORIGINAL_raw_button(action: action)
+    }
+    #else
+    private func raw_button(action: @escaping () -> Void) -> AnyView {
+        AnyView(self.ORIGINAL_raw_button(action: action))
+    }
+    #endif
+    
+    private func ORIGINAL_raw_button(action: @escaping () -> Void) -> some View {
         Button(action: action, label: self.raw_label)
-        #if !os(watchOS) && !os(tvOS)
+          #if !os(watchOS) && !os(tvOS)
             .keyboardShortcut(self.localization.shortcut)
-        #endif
+          #endif
             .accessibilityLabel(self.localization.title)
             .if(value: self.localization.hint) {
                 $0.accessibilityHint($1)
