@@ -216,7 +216,7 @@ extension Action {
     }
     
     public func button(isEnabled: Bool = true,
-                       action: @escaping () -> Void)
+                       action: @MainActor @escaping () -> Void)
                        -> some View
     {
         let isEnabled = ActionEnableBool(isEnabled, action: action)
@@ -224,7 +224,7 @@ extension Action {
     }
     
     public func button<T>(item: T?,
-                          action: @escaping (T) -> Void)
+                          action: @MainActor @escaping (T) -> Void)
                           -> some View
     {
         let isEnabled = ActionEnableItem(item, action: action)
@@ -232,7 +232,7 @@ extension Action {
     }
     
     public func button<C: Collection>(items: C,
-                          action: @escaping (C) -> Void)
+                          action: @MainActor @escaping (C) -> Void)
                           -> some View
     {
         let isEnabled = ActionEnableItems(items, action: action)
