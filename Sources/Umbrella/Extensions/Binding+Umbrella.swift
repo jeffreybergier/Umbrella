@@ -26,7 +26,7 @@
 
 import SwiftUI
 
-extension Binding {
+extension Binding where Value: Sendable {
     @available(*, deprecated, message:"Use `Binding.map` with Sendable types")
     @MainActor public func fallback_map<T>(get: @escaping (Value) -> T, set: @escaping (T) -> Value) -> Binding<T> {
         .init {
@@ -36,9 +36,9 @@ extension Binding {
         }
     }
     public func map<T>(get: @Sendable @escaping (Value) -> T, set: @Sendable @escaping (T) -> Value) -> Binding<T> {
-        .init {
+        .init { [self] in
             get(self.wrappedValue)
-        } set: {
+        } set: { [self] in
             self.wrappedValue = set($0)
         }
     }
@@ -80,7 +80,7 @@ extension Binding where Value == Optional<Bool> {
     }
 }
 
-extension Binding {
+extension Binding where Value: Sendable {
     public func mapBool<T>() -> Binding<Bool> where Value == Optional<T> {
         return Binding<Bool> {
             return self.wrappedValue != nil
@@ -90,7 +90,7 @@ extension Binding {
         }
     }
     
-    public func mapBool() -> Binding<Bool> where Value: Collection & ExpressibleByArrayLiteral {
+    public func mapBool() -> Binding<Bool> where Value: Collection & ExpressibleByArrayLiteral & Sendable {
         return Binding<Bool> {
             !self.wrappedValue.isEmpty
         } set: {

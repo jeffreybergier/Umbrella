@@ -210,7 +210,7 @@ extension Image {
 // MARK: Presentation Helpers
 
 extension View {
-    public func popover<C: Collection & ExpressibleByArrayLiteral, V: View>(
+    public func popover<C: Collection & ExpressibleByArrayLiteral & Sendable, V: View>(
         items: Binding<C>,
         @ViewBuilder content: @escaping (C) -> V
     ) -> some View
@@ -224,7 +224,7 @@ extension View {
         #endif
     }
     
-    public func sheet<C: Collection & ExpressibleByArrayLiteral, V: View>(
+    public func sheet<C: Collection & ExpressibleByArrayLiteral & Sendable, V: View>(
         items: Binding<C>,
         @ViewBuilder content: @escaping (C) -> V,
         onDismiss: (() -> Void)? = nil
@@ -236,7 +236,7 @@ extension View {
         }
     }
     
-    public func sheetCover<C: Collection & ExpressibleByArrayLiteral, V: View>(
+    public func sheetCover<C: Collection & ExpressibleByArrayLiteral & Sendable, V: View>(
         items: Binding<C>,
         @ViewBuilder content: @escaping (C) -> V,
         onDismiss: (() -> Void)? = nil
@@ -249,7 +249,7 @@ extension View {
     }
     
     /// Removed redundent `isPresented` and `presenting` arguments
-    public func alert<A: View, M: View, T, S: StringProtocol>(
+    public func alert<A: View, M: View, T: Sendable, S: StringProtocol>(
         item: Binding<T?>,
         title: S,
         @ViewBuilder actions: (T) -> A,
@@ -264,7 +264,7 @@ extension View {
     }
     
     /// Removed redundent `isPresented` and `presenting` arguments
-    public func confirmationDialog<A: View, M: View, T, S: StringProtocol>(
+    public func confirmationDialog<A: View, M: View, T: Sendable, S: StringProtocol>(
         item: Binding<T?>,
         title: S,
         titleVisibility: Visibility = .automatic,
@@ -281,7 +281,7 @@ extension View {
     }
     
     /// Removed redundent `isPresented` and `presenting` arguments
-    public func confirmationDialog<C: Collection & ExpressibleByArrayLiteral, A: View, M: View, S: StringProtocol>(
+    public func confirmationDialog<C: Collection & ExpressibleByArrayLiteral & Sendable, A: View, M: View, S: StringProtocol>(
         items: Binding<C>,
         title: S,
         titleVisibility: Visibility = .automatic,
