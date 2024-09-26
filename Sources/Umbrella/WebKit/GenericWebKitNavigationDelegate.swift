@@ -39,7 +39,7 @@ public class GenericWebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     public func webView(_ webView: WKWebView,
                         decidePolicyFor navigationAction: WKNavigationAction,
                         preferences: WKWebpagePreferences,
-                        decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void)
+                        decisionHandler: @MainActor (WKNavigationActionPolicy, WKWebpagePreferences) -> Void)
     {
         let url = navigationAction.request.url!
         let decision = type(of: self).decision(for: url)
