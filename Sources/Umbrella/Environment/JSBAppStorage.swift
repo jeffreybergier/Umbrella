@@ -31,7 +31,7 @@ import SwiftUI
 @propertyWrapper
 public struct JSBAppStorage<Value: Codable>: DynamicProperty {
     
-    @AppStorage  private var rawValue: String?
+    @AppStorage  private var rawValue: Data?
     @StateObject private var helper: CodableStorageHelper<Value>
     
     private let defaultValue: Value

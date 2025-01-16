@@ -31,7 +31,7 @@ import SwiftUI
 @propertyWrapper
 public struct JSBSceneStorage<Value: Codable>: DynamicProperty {
     
-    @SceneStorage private var rawValue: String?
+    @SceneStorage private var rawValue: Data?
     @StateObject  private var helper: CodableStorageHelper<Value>
     
     private let defaultValue: Value
