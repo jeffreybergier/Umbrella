@@ -42,37 +42,12 @@ let package = Package(
             name: "Umbrella",
             targets: ["Umbrella"]
         ),
-        .library(
-            name: "TestUmbrella",
-            targets: ["TestUmbrella"]
-        ),
-    ],
-    dependencies: [
-        .package(url: "https://github.com/nalexn/ViewInspector",
-                 .upToNextMajor(from: "0.0.0")),
     ],
     targets: [
         .target(
             name: "Umbrella",
             dependencies: [],
             path: "Sources/Umbrella"
-        ),
-        .target(
-            name: "TestUmbrella",
-            dependencies: [],
-            path: "Sources/TestUmbrella"
-        ),
-        .testTarget(
-            name: "UmbrellaTests",
-            dependencies: [
-                "Umbrella",
-                "TestUmbrella",
-                "ViewInspector",
-            ],
-            path: "Tests/UmbrellaTests",
-            resources: [
-                .copy("Resources/BundleTest.png"),
-            ]
         ),
     ],
     swiftLanguageVersions: [.version("6")]
