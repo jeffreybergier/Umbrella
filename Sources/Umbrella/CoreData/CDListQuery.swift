@@ -26,6 +26,7 @@
 import CoreData
 import SwiftUI
 
+@MainActor
 @propertyWrapper
 public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     
@@ -68,10 +69,12 @@ public struct CDListQuery<In: NSManagedObject, Out>: DynamicProperty {
     }
     
     private let needsUpdate = SecretBox(true)
-    public func update() {
-        guard self.needsUpdate.value else { return }
-        self.needsUpdate.value = false
-        self.updateCoreData()
+    public nonisolated func update() {
+        MainActor.assumeIsolated {
+            guard self.needsUpdate.value else { return }
+            self.needsUpdate.value = false
+            self.updateCoreData()
+        }
     }
     
     private func write(_ newValue: Configuration) {

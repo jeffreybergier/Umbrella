@@ -33,39 +33,38 @@ internal class CodableStorageHelper<Value: Codable>: ObservableObject {
     private let decoder = PropertyListDecoder()
     
     // Not sure if cache actually helps performance
-    private var cache: [String: Value] = [:]
+    private var cache: [Data: Value] = [:]
     private let onError: OnError?
     
     internal init(_ onError: OnError?) {
         self.onError = onError
     }
     
-    internal func readCacheOrDecode(_ rawValue: String?) -> Value? {
+    internal func readCacheOrDecode(_ rawValue: Data?) -> Value? {
         do {
-            guard let rawValue else { return nil }
-            if let cache = self.cache[rawValue] { return cache }
-            guard let data = Data(base64Encoded: rawValue) else { return nil }
-            return try self.decoder.decode(Value.self, from: data)
+            guard let data = rawValue else { return nil }
+            if let cache = self.cache[data] { return cache }
+            let output = try self.decoder.decode(Value.self, from: data)
+            self.cache[data] = output
+            return output
         } catch {
             self.onError?(error)
             guard self.onError == nil else { return nil }
             NSLog(String(describing: error))
-            assertionFailure(String(describing: error))
             return nil
         }
     }
     
-    internal func encodeAndCache(_ newValue: Value) -> String? {
+    internal func encodeAndCache(_ newValue: Value) -> Data? {
+      self.objectWillChange.send()
         do {
             let data = try self.encoder.encode(newValue)
-            let rawValue = data.base64EncodedString()
-            self.cache[rawValue] = newValue
-            return rawValue
+            self.cache[data] = newValue
+            return data
         } catch {
             self.onError?(error)
             guard self.onError == nil else { return nil }
             NSLog(String(describing: error))
-            assertionFailure(String(describing: error))
             return nil
         }
     }

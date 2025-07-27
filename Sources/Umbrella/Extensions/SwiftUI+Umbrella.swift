@@ -34,6 +34,11 @@ import AppKit
 // MARK: Crossplatform support
 
 extension View {
+    @available(iOS,      deprecated: 17.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(macOS,    deprecated: 14.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(tvOS,     deprecated: 17.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(watchOS,  deprecated: 10.0, message: "Use `toolbarTitleDisplayMode()` instead")
+    @available(visionOS, deprecated: 1.0,  message: "Use `toolbarTitleDisplayMode()` instead")
     public var navigationBarTitleDisplayModeInline: some View {
         #if os(macOS) || os(tvOS)
         self
@@ -79,7 +84,8 @@ extension View {
     }
 }
 
-public struct EnvironmentTintColor: EnvironmentKey {
+@MainActor // TODO: Update this to safe when SwiftUI allows
+public struct EnvironmentTintColor: @preconcurrency EnvironmentKey {
     public static var defaultValue: Color = {
         #if os(macOS)
         Color(nsColor: NSColor.controlAccentColor)
@@ -204,7 +210,7 @@ extension Image {
 // MARK: Presentation Helpers
 
 extension View {
-    public func popover<C: Collection & ExpressibleByArrayLiteral, V: View>(
+    public func popover<C: Collection & ExpressibleByArrayLiteral & Sendable, V: View>(
         items: Binding<C>,
         @ViewBuilder content: @escaping (C) -> V
     ) -> some View
@@ -218,7 +224,7 @@ extension View {
         #endif
     }
     
-    public func sheet<C: Collection & ExpressibleByArrayLiteral, V: View>(
+    public func sheet<C: Collection & ExpressibleByArrayLiteral & Sendable, V: View>(
         items: Binding<C>,
         @ViewBuilder content: @escaping (C) -> V,
         onDismiss: (() -> Void)? = nil
@@ -230,7 +236,7 @@ extension View {
         }
     }
     
-    public func sheetCover<C: Collection & ExpressibleByArrayLiteral, V: View>(
+    public func sheetCover<C: Collection & ExpressibleByArrayLiteral & Sendable, V: View>(
         items: Binding<C>,
         @ViewBuilder content: @escaping (C) -> V,
         onDismiss: (() -> Void)? = nil
@@ -243,7 +249,7 @@ extension View {
     }
     
     /// Removed redundent `isPresented` and `presenting` arguments
-    public func alert<A: View, M: View, T, S: StringProtocol>(
+    public func alert<A: View, M: View, T: Sendable, S: StringProtocol>(
         item: Binding<T?>,
         title: S,
         @ViewBuilder actions: (T) -> A,
@@ -258,7 +264,7 @@ extension View {
     }
     
     /// Removed redundent `isPresented` and `presenting` arguments
-    public func confirmationDialog<A: View, M: View, T, S: StringProtocol>(
+    public func confirmationDialog<A: View, M: View, T: Sendable, S: StringProtocol>(
         item: Binding<T?>,
         title: S,
         titleVisibility: Visibility = .automatic,
@@ -270,6 +276,23 @@ extension View {
                                 isPresented: item.mapBool(),
                                 titleVisibility: titleVisibility,
                                 presenting: item.wrappedValue,
+                                actions: actions,
+                                message: message)
+    }
+    
+    /// Removed redundent `isPresented` and `presenting` arguments
+    public func confirmationDialog<C: Collection & ExpressibleByArrayLiteral & Sendable, A: View, M: View, S: StringProtocol>(
+        items: Binding<C>,
+        title: S,
+        titleVisibility: Visibility = .automatic,
+        @ViewBuilder actions: (C) -> A,
+        @ViewBuilder message: (C) -> M
+    ) -> some View
+    {
+        self.confirmationDialog(title,
+                                isPresented: items.mapBool(),
+                                titleVisibility: titleVisibility,
+                                presenting: items.wrappedValue,
                                 actions: actions,
                                 message: message)
     }
@@ -286,6 +309,11 @@ extension View {
     ///   - value: Equatable value to watch for changes
     ///   - async: use async to allow the view to appear before performing the initial work
     ///   - perform: closure to perform on load and change
+    @available(iOS,      deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(macOS,    deprecated: 14.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(tvOS,     deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(watchOS,  deprecated: 10.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    @available(visionOS, deprecated: 1.0,  message: "Use `onChange` with a two or zero parameter action closure instead.")
     public func onLoadChange<T: Equatable>(of value: T,
                                            async: Bool = false,
                                            perform: @escaping (T) -> Void)

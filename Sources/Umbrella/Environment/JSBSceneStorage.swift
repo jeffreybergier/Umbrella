@@ -27,10 +27,11 @@
 import SwiftUI
 
 /// Provides a SceneStorage API that takes any codable value
+@MainActor
 @propertyWrapper
 public struct JSBSceneStorage<Value: Codable>: DynamicProperty {
     
-    @SceneStorage private var rawValue: String?
+    @SceneStorage private var rawValue: Data?
     @StateObject  private var helper: CodableStorageHelper<Value>
     
     private let defaultValue: Value

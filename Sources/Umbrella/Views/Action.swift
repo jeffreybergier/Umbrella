@@ -34,6 +34,7 @@ import SwiftUI
 /// On either instance, call `actionWith:` method to create `Action`.
 /// Use `some ActionStyle` to hide implementation details from your UI code.
 /// Can be constructed manually with `ActionImp` or by implementing custom type.
+@MainActor
 public protocol Action {
     associatedtype Style: ActionStyle
     
@@ -57,6 +58,7 @@ public struct ActionImp<S: ActionStyle>: Action {
 /// Make the creation of buttons and labels that are accessible and have keyboard shortcuts easy.
 /// Customize by using `outerModifier`. Make sophisitcated labels using `innerModifier`.
 /// Use `some ActionStyle` with `ActionStyleImp` to hide implementation details.
+@MainActor
 public protocol ActionStyle {
     associatedtype LS: LabelStyle
     associatedtype M1: ViewModifier
@@ -96,7 +98,7 @@ public struct ActionStyleImp<LS: LabelStyle, M1: ViewModifier, M2: ViewModifier>
 // MARK: Action Localization
 
 /// Configure the text of the Button or Label
-public struct ActionLocalization {
+public struct ActionLocalization: Sendable {
     /// Image for the label
     public var image: ActionLabelImage?
     /// Visible label and accessibility label
@@ -104,9 +106,14 @@ public struct ActionLocalization {
     /// Accessibility hint
     public var hint: LocalizedString?
     /// Keyboard shortcut
+    private var _shortcut: Sendable?
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public var shortcut: KeyboardShortcut?
+    public var shortcut: KeyboardShortcut? {
+        get { _shortcut as? KeyboardShortcut }
+        set { _shortcut = newValue }
+    }
+
     
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
@@ -133,12 +140,13 @@ public struct ActionLocalization {
         self.hint = hint
     }
     
+    @MainActor
     public func action<S: ActionStyle>(style: S) -> some Action {
         return ActionImp(style: style, localization: self)
     }
 }
 
-public enum ActionLabelImage: Equatable {
+public enum ActionLabelImage: Equatable, Sendable {
     case system(String)
     case view(Image)
     case image(JSBImage)
@@ -208,7 +216,7 @@ extension Action {
     }
     
     public func button(isEnabled: Bool = true,
-                       action: @escaping () -> Void)
+                       action: @MainActor @escaping () -> Void)
                        -> some View
     {
         let isEnabled = ActionEnableBool(isEnabled, action: action)
@@ -216,7 +224,7 @@ extension Action {
     }
     
     public func button<T>(item: T?,
-                          action: @escaping (T) -> Void)
+                          action: @MainActor @escaping (T) -> Void)
                           -> some View
     {
         let isEnabled = ActionEnableItem(item, action: action)
@@ -224,18 +232,31 @@ extension Action {
     }
     
     public func button<C: Collection>(items: C,
-                          action: @escaping (C) -> Void)
+                          action: @MainActor @escaping (C) -> Void)
                           -> some View
     {
         let isEnabled = ActionEnableItems(items, action: action)
         return self.button(isEnabled)
     }
     
+    // TODO: Hack because the Swift 6 compiler has trouble with this
+    // type signature when used in other projects when compiled in release mode.
+    // Delete when no longer needed and use ORIGINAL_raw_button
+    #if DEBUG
     private func raw_button(action: @escaping () -> Void) -> some View {
+        self.ORIGINAL_raw_button(action: action)
+    }
+    #else
+    private func raw_button(action: @escaping () -> Void) -> AnyView {
+        AnyView(self.ORIGINAL_raw_button(action: action))
+    }
+    #endif
+    
+    private func ORIGINAL_raw_button(action: @escaping () -> Void) -> some View {
         Button(action: action, label: self.raw_label)
-        #if !os(watchOS) && !os(tvOS)
+          #if !os(watchOS) && !os(tvOS)
             .keyboardShortcut(self.localization.shortcut)
-        #endif
+          #endif
             .accessibilityLabel(self.localization.title)
             .if(value: self.localization.hint) {
                 $0.accessibilityHint($1)
@@ -244,28 +265,34 @@ extension Action {
     }
 }
 
+@MainActor
 public struct ActionEnableBool {
+    public typealias Closure = @MainActor () -> Void
     public var isEnabled: Bool
-    public var action: () -> Void
-    public init(_ isEnabled: Bool = true, action: @escaping () -> Void) {
+    public var action: Closure
+    public init(_ isEnabled: Bool = true, action: @escaping Closure) {
         self.isEnabled = isEnabled
         self.action = action
     }
 }
 
+@MainActor
 public struct ActionEnableItem<T> {
+    public typealias Closure = @MainActor (T) -> Void
     public var item: T?
-    public var action: (T) -> Void
-    public init(_ item: T?, action: @escaping (T) -> Void) {
+    public var action: Closure
+    public init(_ item: T?, action: @escaping Closure) {
         self.item = item
         self.action = action
     }
 }
 
+@MainActor
 public struct ActionEnableItems<C: Collection> {
+    public typealias Closure = @MainActor (C) -> Void
     public var items: C
-    public var action: (C) -> Void
-    public init(_ items: C, action: @escaping (C) -> Void) {
+    public var action: Closure
+    public init(_ items: C, action: @escaping Closure) {
         self.items = items
         self.action = action
     }
