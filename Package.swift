@@ -50,5 +50,5 @@ let package = Package(
             path: "Sources/Umbrella"
         ),
     ],
-    swiftLanguageVersions: [.version("6")]
+    swiftLanguageModes: [.version("6")]
 )
