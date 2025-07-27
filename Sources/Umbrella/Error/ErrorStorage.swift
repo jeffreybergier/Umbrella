@@ -25,6 +25,7 @@
 //
 
 import Foundation
+import Combine
 import SwiftUI
 
 public typealias OnError = (Error) -> Void
@@ -32,13 +33,11 @@ public typealias OnError = (Error) -> Void
 /// Use to store Errors across your application. Works in combination with `ErrorStorage.Presenter`
 /// to display errors in your application. This type makes no attempt to encode errors, they are all lost when
 /// the application quits. However, `ErrorStorage.Identifier` can be coded.
+@MainActor
 @propertyWrapper
 public struct ErrorStorage: DynamicProperty {
     
-    /// HACK because SwiftUI needs to let things settle before trying to present next error
-    public static var HACK_errorDelay: DispatchTime { .now() + 0.1 }
-    
-    public struct Identifier: Identifiable, Codable, Hashable {
+    public struct Identifier: Identifiable, Codable, Hashable, Sendable {
         public var id = UUID()
     }
     
@@ -50,46 +49,50 @@ public struct ErrorStorage: DynamicProperty {
     
     /// Use to detect in your UI if there are Errors to show and what the next error is.
     public var wrappedValue: Value {
-        return .init(all: self.storage.identifiers,
-                     rawStorage: self.storage)
+        return .init(self.storage)
     }
 }
 
 extension ErrorStorage {
     
     public struct Value {
-        public let all: [Identifier]
-        public let rawStorage: EnvironmentValue
+        
+        public let didAppendPub: PassthroughSubject<Identifier, Never>
+        public let nextErrorPub: PassthroughSubject<Identifier?, Never>
+        public let nextError: Identifier?
+        
+        private let rawStorage: EnvironmentValue
+        
+        internal init(_ rawStorage: EnvironmentValue) {
+            self.rawStorage = rawStorage
+            self.didAppendPub = rawStorage.didAppendPub
+            self.nextErrorPub = rawStorage.nextErrorPub
+            self.nextError = rawStorage.identifiers.first
+        }
+        
         public func error(for key: Identifier) -> Error? {
             self.rawStorage.error(for: key)
         }
+        
         public func append(_ error: Error) {
-            // HACK because SwiftUI needs to let things settle before trying to present next error
-            DispatchQueue.main.asyncAfter(deadline: ErrorStorage.HACK_errorDelay)
-            { [rawStorage] in
-                rawStorage.append(error)
-            }
+            self.rawStorage.append(error)
         }
+        
         public func remove(_ key: Identifier) {
-            // HACK to prevent purple warnings
-            DispatchQueue.main.async
-            { [rawStorage] in
-                rawStorage.remove(key)
-            }
+            self.rawStorage.remove(key)
         }
+        
         public func removeAll() {
-            // HACK to prevent purple warnings
-            DispatchQueue.main.async
-            { [rawStorage] in
-                rawStorage.removeAll()
-            }
+            self.rawStorage.removeAll()
         }
     }
     
     public class EnvironmentValue: ObservableObject {
         
-        @Published public internal(set) var storage: [Identifier: Error] = [:]
-        @Published public internal(set) var identifiers: [Identifier] = []
+        public let didAppendPub = PassthroughSubject<Identifier, Never>()
+        public let nextErrorPub = PassthroughSubject<Identifier?, Never>()
+        public private(set) var identifiers: [Identifier] = []
+        private var storage: [Identifier: Error] = [:]
         
         public init() {}
         
@@ -98,19 +101,41 @@ extension ErrorStorage {
         }
         
         public func append(_ error: Error) {
+            // Send pre notifications
+            self.objectWillChange.send()
+            
+            // Update Storage
             let id = Identifier()
-            self.identifiers.append(id)
             self.storage[id] = error
+            self.identifiers.append(id)
+            
+            // Send post notifications
+            self.didAppendPub.send(id)
+            self.nextErrorPub.send(self.identifiers.first)
         }
         
         public func remove(_ key: Identifier) {
-            self.identifiers.removeAll { key == $0 }
+            // Send pre notifications
+            self.objectWillChange.send()
+            
+            // Update Storage
             self.storage.removeValue(forKey: key)
+            self.identifiers.removeAll { key == $0 }
+            
+            // Send post notifications
+            self.nextErrorPub.send(self.identifiers.first)
         }
         
         public func removeAll() {
+            // Send pre notifications
+            self.objectWillChange.send()
+            
+            // Update Storage
             self.storage = [:]
             self.identifiers = []
+            
+            // Send post notifications
+            self.nextErrorPub.send(self.identifiers.first)
         }
     }
 }

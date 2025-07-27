@@ -39,14 +39,15 @@ public protocol UserFacingError: CustomNSError {
     var options: [RecoveryOption] { get }
 }
 
-public struct RecoveryOption: Identifiable {
+public struct RecoveryOption: Identifiable, Sendable {
+    public typealias Action = @MainActor @Sendable () -> Void
     public var id = Int.random(in: 0..<Int.max)
     public var title: LocalizationKey
     public var isDestructive: Bool
-    public var perform: () -> Void
+    public var perform: Action
     public init(title: LocalizationKey,
                 isDestructive: Bool = false,
-                perform: @escaping () -> Void)
+                perform: @escaping Action)
     {
         self.title = title
         self.isDestructive = isDestructive

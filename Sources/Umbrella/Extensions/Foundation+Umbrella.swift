@@ -50,4 +50,6 @@ extension JSBImage {
         bundle.image(forResource: name)
     }
 }
+// TODO: Remove this when possible
+extension NSImage: @retroactive @unchecked Sendable {}
 #endif

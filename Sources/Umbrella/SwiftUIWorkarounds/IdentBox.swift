@@ -37,3 +37,5 @@ public struct IdentBox<Value>: Identifiable {
         self.value = value
     }
 }
+
+extension IdentBox: Sendable where Value: Sendable { }

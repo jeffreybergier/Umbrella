@@ -26,6 +26,7 @@
 
 import SwiftUI
 
+@MainActor
 @propertyWrapper
 public struct JSBCodableFileStorage<Value: Codable>: DynamicProperty {
         
@@ -73,6 +74,7 @@ public struct JSBCodableFileStorage<Value: Codable>: DynamicProperty {
     }
 }
 
+@MainActor
 @propertyWrapper
 public struct JSBFileStorage: DynamicProperty {
     

@@ -36,6 +36,7 @@ public enum CDObjectQueryError: Int, CustomNSError {
     public var errorUserInfo: [String : Any] { [:] }
 }
 
+@MainActor
 @propertyWrapper
 public struct CDObjectQuery<In: NSManagedObject, Out>: DynamicProperty {
     

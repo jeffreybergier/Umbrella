@@ -33,7 +33,8 @@ import SwiftUI
 public typealias LocalizedString = String
 public typealias LocalizationKey = String
 
-public struct EnvironmentCustomBundle: EnvironmentKey {
+@MainActor // TODO: Update this to safe when SwiftUI allows
+public struct EnvironmentCustomBundle: @preconcurrency EnvironmentKey {
     public static var defaultValue: Bundle = .main
 }
 

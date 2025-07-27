@@ -26,8 +26,10 @@
 
 import SwiftUI
 
-public struct isFallbackKey: PreferenceKey {
-    public static var defaultValue: Bool = false
+// TODO: Update this to safe when SwiftUI allows
+// @MainActor, uncommenting this causes build failure in Swift 6
+public struct isFallbackKey: @preconcurrency PreferenceKey {
+    @MainActor public static var defaultValue: Bool = false
     public static func reduce(value: inout Bool, nextValue: () -> Bool) {
         value = nextValue()
     }

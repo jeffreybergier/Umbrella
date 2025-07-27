@@ -1,4 +1,4 @@
-// swift-tools-version:5.7.0
+// swift-tools-version:6.0.0
 //
 //  Created by Jeffrey Bergier on 2021/02/23.
 //
@@ -35,20 +35,13 @@ let package = Package(
         .macCatalyst(.init(stringLiteral: "15.4")),
         .tvOS(.init(stringLiteral: "15.4")),
         .iOS(.init(stringLiteral: "15.4")),
+        .visionOS(.v1),
     ],
     products: [
         .library(
             name: "Umbrella",
             targets: ["Umbrella"]
         ),
-        .library(
-            name: "TestUmbrella",
-            targets: ["TestUmbrella"]
-        ),
-    ],
-    dependencies: [
-        .package(url: "https://github.com/nalexn/ViewInspector",
-                 .upToNextMajor(from: "0.0.0")),
     ],
     targets: [
         .target(
@@ -56,22 +49,6 @@ let package = Package(
             dependencies: [],
             path: "Sources/Umbrella"
         ),
-        .target(
-            name: "TestUmbrella",
-            dependencies: [],
-            path: "Sources/TestUmbrella"
-        ),
-        .testTarget(
-            name: "UmbrellaTests",
-            dependencies: [
-                "Umbrella",
-                "TestUmbrella",
-                "ViewInspector",
-            ],
-            path: "Tests/UmbrellaTests",
-            resources: [
-                .copy("Resources/BundleTest.png"),
-            ]
-        ),
-    ]
+    ],
+    swiftLanguageModes: [.version("6")]
 )

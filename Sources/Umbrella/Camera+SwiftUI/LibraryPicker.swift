@@ -82,36 +82,21 @@ internal class LibraryPickerNativeDelegate: NSObject, PHPickerViewControllerDele
             self.selectionClosure(nil)
             return
         }
-        var result: CameraResult?
-        let wait1 = DispatchSemaphore(value: 0)
-        item.loadDataRepresentation(forTypeIdentifier: UTType.jpeg.identifier) { _data, error in
-            if let error = error {
+        Task {
+            do {
+                let jpegData = try await item.dataRepresentation(forTypeIdentifier: UTType.jpeg.identifier)
+                self.selectionClosure(.success(jpegData))
+            } catch {
                 NSLog(String(describing: error))
-                result = .failure(.format)
-            } else if let data = _data {
-                result = .success(data)
-            } else {
-                fatalError("Error and Data were both NIL")
-            }
-            wait1.signal()
-        }
-        wait1.wait()
-        if case .failure = result {
-            let wait2 = DispatchSemaphore(value: 0)
-            item.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { _data, error in
-                if let error = error {
+                do {
+                    let imageData = try await item.dataRepresentation(forTypeIdentifier: UTType.image.identifier)
+                    self.selectionClosure(.success(imageData))
+                } catch {
                     NSLog(String(describing: error))
-                    result = .failure(.format)
-                } else if let data = _data {
-                    result = .success(data)
-                } else {
-                    fatalError("Error and Data were both NIL")
+                    self.selectionClosure(.failure(.format))
                 }
-                wait2.signal()
             }
-            wait2.wait()
         }
-        self.selectionClosure(result)
     }
 }
 #else
@@ -141,6 +126,22 @@ internal struct LibraryPickerUnavailable: View {
                 .toolbar {
                     Button("Done") { self.selectionClosure(nil) }
                 }
+        }
+    }
+}
+
+extension NSItemProvider {
+    func dataRepresentation(forTypeIdentifier typeIdentifier: String) async throws -> Data {
+        try await withCheckedThrowingContinuation { continuation in
+            self.loadDataRepresentation(forTypeIdentifier: typeIdentifier) { data, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let data {
+                    continuation.resume(returning: data)
+                } else {
+                    fatalError("Error and Data were both NIL")
+                }
+            }
         }
     }
 }
